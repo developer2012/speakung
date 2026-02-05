@@ -95,10 +95,9 @@
       cursor:pointer;transition:.2s;
     }
     .level:hover{transform:translateY(-2px);background:rgba(255,255,255,.11)}
-
-    /* ✅ Level bosilganda ko‘k bo‘lsin */
+    /* ✅ level bosilganda ko‘k bo‘lsin */
     .level.active{
-      background:#4facfe;       /* ko‘k */
+      background:#4facfe;
       color:#001018;
       border-color:transparent;
       box-shadow:0 12px 30px rgba(79,172,254,.22);
@@ -183,38 +182,95 @@
       color:#fff;font-weight:900;
     }
     .sendBtn:hover{background:rgba(255,255,255,.14)}
-    /* OPEN screen */
+    .hidden{display:none !important;}
+
+    /* ==========================
+       ✅ OPEN SCREEN (RASMDAGIDEK)
+    =========================== */
     #openScreen{
       position:fixed;inset:0;
-      background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-      display:flex;align-items:center;justify-content:center;
-      z-index:9999;padding:18px;
+      display:grid;place-items:center;
+      z-index:9999;
+      padding:18px;
+      background:
+        radial-gradient(900px 600px at 15% 15%, #163f4f 0%, transparent 55%),
+        radial-gradient(900px 600px at 85% 20%, #163a52 0%, transparent 52%),
+        linear-gradient(135deg,#0b2430,#0f3746);
     }
     .openCard{
-      width:min(520px,100%);
-      background:rgba(255,255,255,.08);
+      width:min(560px, 100%);
+      border-radius:28px;
+      padding:26px 26px 24px;
+      background:linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.06));
       border:1px solid rgba(255,255,255,.14);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      padding:22px;text-align:center;
+      box-shadow:0 18px 60px rgba(0,0,0,.45);
+      text-align:center;
     }
-    .openTitle{font-size:34px;font-weight:1000;letter-spacing:.3px}
-    .openSub{margin-top:8px;color:rgba(255,255,255,.78);font-size:13px;line-height:1.5}
-    .openBtn{margin-top:18px;width:100%;justify-content:center;padding:16px 18px;font-size:16px}
-    .hidden{display:none !important;}
+    .openTitleRow{
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:14px;
+      margin-bottom:10px;
+    }
+    .openMic{
+      font-size:28px;
+      filter: drop-shadow(0 6px 18px rgba(0,0,0,.35));
+      transform: translateY(-1px);
+    }
+    .openTitle{
+      font-size:40px;
+      font-weight:1000;
+      letter-spacing:.3px;
+      line-height:1;
+      text-shadow:0 8px 26px rgba(0,0,0,.35);
+    }
+    .openSub{
+      margin-top:8px;
+      font-size:14px;
+      line-height:1.6;
+      color:rgba(255,255,255,.82);
+    }
+    .openBtn{
+      margin-top:18px;
+      width:100%;
+      border:none;
+      cursor:pointer;
+      border-radius:14px;
+      padding:16px 18px;
+      font-size:18px;
+      font-weight:1000;
+      color:#001018;
+      background:linear-gradient(135deg,#16e9ff,#3aa8ff);
+      box-shadow:0 18px 40px rgba(22,233,255,.12);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      gap:10px;
+      transition:.18s;
+    }
+    .openBtn:hover{ transform:translateY(-1px); filter:brightness(1.03); }
+    .openBtn:active{ transform:translateY(1px); }
   </style>
 </head>
+
 <body>
 
-<!-- OPEN (admin haqida hech narsa yozilmaydi) -->
+<!-- ✅ OPEN (rasmdagidek) -->
 <div id="openScreen">
   <div class="openCard">
-    <div class="openTitle">🎤 Fast Match</div>
-    <div class="openSub">
-      Level tanlang → Find → Qidirilyapti → Topildi → Gaplashish
-      <br>Voice (audio-only) + Text bor.
+    <div class="openTitleRow">
+      <div class="openMic">🎙️</div>
+      <div class="openTitle">Fast Match</div>
     </div>
-    <button class="primary openBtn" id="openBtn">🚀 OPEN</button>
+
+    <div class="openSub">
+      Level tanlang → Find → Qidirilyapti → Topildi →<br>
+      Gaplashish<br>
+      Voice (audio-only) + Text bor.
+    </div>
+
+    <button class="openBtn" id="openBtn">🚀 OPEN</button>
   </div>
 </div>
 
@@ -230,7 +286,7 @@
     <div class="pill">
       <span class="dot" id="dot"></span>
       <span id="netText">Ulanmoqda...</span>
-      <!-- ✅ endi "SZ" ni 5 marta bosganda ko‘rinadi -->
+      <!-- ✅ SZ 5 marta bosilganda ko‘rinadi -->
       <span id="adminOnline" class="hidden">• Online: <b id="onlineCount">0</b></span>
     </div>
   </div>
@@ -344,9 +400,7 @@ const rtcConfig = { iceServers:[
 ] };
 
 /* =======================
-   ✅ ONLINE COUNT (HAMMA UCHUN)
-   - "SZ" logoni 5 marta bossang online count ko‘rinadi/yashirinadi
-   - O‘zing ham count ichida bo‘ladi
+   ✅ SZ 5x BOSSA ONLINE COUNT KO‘RINADI
 ======================= */
 let showOnline = (localStorage.getItem("show_online")==="1");
 let logoClicks = 0;
@@ -363,13 +417,11 @@ refreshOnlineUI();
 
 $("logo").addEventListener("click", ()=>{
   const now = Date.now();
-  // 2.5 sekund ichida 5 marta bosish kerak
   if(now > logoWindowUntil){
     logoClicks = 0;
-    logoWindowUntil = now + 2500;
+    logoWindowUntil = now + 2500; // 2.5s ichida 5 marta
   }
   logoClicks++;
-
   if(logoClicks >= 5){
     logoClicks = 0;
     showOnline = !showOnline;
@@ -393,7 +445,6 @@ async function startOnlinePresence(){
     $("netText").textContent = ok ? "Online" : "Ulanmadi";
   };
 
-  // ✅ count har doim yangilanadi (lekin UI’da faqat showOnline true bo‘lsa ko‘rinadi)
   const updateCount = ()=>{
     const state = onlineChan.presenceState();
     $("onlineCount").textContent = String(Object.keys(state).length);
@@ -439,8 +490,7 @@ document.querySelectorAll(".level").forEach(el=>{
 });
 
 /* =======================
-   MATCHMAKING (no DB tables)
-   - same level channel
+   MATCHMAKING (same level)
    - looking -> proposal -> accept -> enter room
 ======================= */
 async function joinLevelChannel(){
@@ -454,7 +504,7 @@ async function joinLevelChannel(){
     if(!from || from === uid) return;
     if(!searching || roomId) return;
 
-    // deterministic: smaller uid proposes
+    // deterministic: kichik uid taklif qiladi
     if(uid < from){
       const a = [uid, from].sort();
       const proposedRoom = `r_${level}_${a[0]}_${a[1]}`;
