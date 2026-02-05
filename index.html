@@ -5,7 +5,6 @@
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Fast Match — Voice + Text</title>
 
-  <!-- Supabase JS v2 -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
@@ -16,7 +15,7 @@
       --txt:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
       --a:#00f2fe; --b:#4facfe;
-      --ok:#26e6a7; --bad:#ff5a7a; --warn:#ffcf5a;
+      --ok:#26e6a7; --warn:#ffcf5a;
       --r:18px; --shadow:0 18px 60px rgba(0,0,0,.45);
     }
     *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
@@ -65,6 +64,7 @@
     }
     .dot{width:10px;height:10px;border-radius:50%;background:var(--warn);box-shadow:0 0 0 6px rgba(255,207,90,.14)}
     .dot.on{background:var(--ok);box-shadow:0 0 0 6px rgba(38,230,167,.14)}
+
     .content{
       display:grid;
       grid-template-columns: 390px 1fr;
@@ -72,6 +72,7 @@
       padding:14px;
     }
     @media(max-width: 980px){ .content{grid-template-columns:1fr} }
+
     .card{
       background:var(--card);
       border:1px solid rgba(255,255,255,.12);
@@ -80,6 +81,7 @@
     }
     .card h2{font-size:13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .small{font-size:12px;color:var(--muted);line-height:1.45}
+
     .levels{
       display:grid;
       grid-template-columns: repeat(6, 1fr);
@@ -96,6 +98,7 @@
     }
     .level:hover{transform:translateY(-2px);background:rgba(255,255,255,.11)}
     .level.active{background:linear-gradient(135deg,var(--a),var(--b));color:#001018;border-color:transparent}
+
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     button{
       border:none;cursor:pointer;border-radius:16px;
@@ -108,11 +111,13 @@
     .ghost:hover{background:rgba(255,255,255,.12)}
     .danger{background:rgba(255,90,122,.14);border:1px solid rgba(255,90,122,.35);color:#ffd7df}
     .danger:hover{background:rgba(255,90,122,.20)}
+
     .status{
       margin-top:12px;padding:12px;border-radius:14px;
       border:1px dashed rgba(255,255,255,.18);
       font-size:12px;color:var(--muted);line-height:1.45;
     }
+
     .stage{
       display:grid;
       grid-template-rows:auto 1fr;
@@ -127,8 +132,10 @@
       color:rgba(255,255,255,.85);
     }
     .tag b{color:#fff}
+
     .panels{display:grid;grid-template-columns: 1fr 1fr;gap:12px;}
     @media(max-width: 980px){ .stage{min-height:700px} .panels{grid-template-columns:1fr} }
+
     .panel{
       border-radius:18px;border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.06);
@@ -145,6 +152,7 @@
     }
     .bar{height:100%;width:0%;background:linear-gradient(90deg,var(--a),var(--b));transition:width .2s}
     audio{width:100%}
+
     .chatBox{
       flex:1;overflow:auto;border-radius:14px;padding:10px;
       background:rgba(0,0,0,.18);
@@ -175,42 +183,12 @@
       color:#fff;font-weight:900;
     }
     .sendBtn:hover{background:rgba(255,255,255,.14)}
-    /* OPEN screen */
-    #openScreen{
-      position:fixed;inset:0;
-      background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
-      display:flex;align-items:center;justify-content:center;
-      z-index:9999;padding:18px;
-    }
-    .openCard{
-      width:min(520px,100%);
-      background:rgba(255,255,255,.08);
-      border:1px solid rgba(255,255,255,.14);
-      border-radius:22px;
-      box-shadow:var(--shadow);
-      padding:22px;text-align:center;
-    }
-    .openTitle{font-size:34px;font-weight:1000;letter-spacing:.3px}
-    .openSub{margin-top:8px;color:rgba(255,255,255,.78);font-size:13px;line-height:1.5}
-    .openBtn{margin-top:18px;width:100%;justify-content:center;padding:16px 18px;font-size:16px}
     .hidden{display:none !important;}
   </style>
 </head>
 <body>
 
-<!-- OPEN (admin haqida hech narsa yozilmaydi) -->
-<div id="openScreen">
-  <div class="openCard">
-    <div class="openTitle">🎤 Fast Match</div>
-    <div class="openSub">
-      Level tanlang → Find → Qidirilyapti → Topildi → Gaplashish
-      <br>Voice (audio-only) + Text bor.
-    </div>
-    <button class="primary openBtn" id="openBtn">🚀 OPEN</button>
-  </div>
-</div>
-
-<div class="app" id="mainApp" style="display:none;">
+<div class="app" id="mainApp">
   <div class="top">
     <div class="brand">
       <div class="logo" id="logo">SZ</div>
@@ -278,24 +256,12 @@
 </div>
 
 <script>
-/* =======================
-   SUPABASE CONFIG (sen bergan)
-======================= */
+/* ==================== SUPABASE ==================== */
 const SUPABASE_URL = "https://snqkwdwoxtbkaqfhehxq.supabase.co";
 const SUPABASE_KEY = "sb_publishable_ehiDOw8qEeUw4lr--7uMJw_px5GvlSR";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* =======================
-   UI OPEN
-======================= */
-const openBtn = document.getElementById("openBtn");
-const openScreen = document.getElementById("openScreen");
-const mainApp = document.getElementById("mainApp");
-openBtn.onclick = () => { openScreen.style.display="none"; mainApp.style.display="block"; };
-
-/* =======================
-   HELPERS
-======================= */
+/* ==================== HELPERS ==================== */
 const $ = (id)=>document.getElementById(id);
 const esc = (s)=> (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
 const nowTime = ()=> new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
@@ -309,113 +275,70 @@ function addMsg(text, who){
   box.scrollTop = box.scrollHeight;
 }
 
-/* =======================
-   STATE
-======================= */
+/* ==================== STATE ==================== */
 const uid = "u_" + Math.random().toString(36).slice(2);
 let level = null;
 
-let onlineChan = null;
-let levelChan = null;
-let roomChan = null;
+let onlineChan=null, levelChan=null, roomChan=null;
+let roomId=null, peerId=null;
 
-let roomId = null;
-let peerId = null;
+let searching=false;
+let findPulse=null;
 
-let searching = false;
-let findPulse = null;
-
-/* voice */
-let pc = null;
-let localStream = null;
-let isMuted = false;
-const rtcConfig = { iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}] };
-
-/* =======================
-   SECRET ADMIN (UI'DA YO'Q)
-   - Logo ustiga 7 marta bos
-   - Keyin 6 sekund ichida klaviaturada: 2332
-======================= */
+/* ==================== SECRET ADMIN (UI’da yo‘q) ==================== */
 let adminEnabled = (localStorage.getItem("admin_view")==="1");
-let secretClicks = 0;
-let secretWindowUntil = 0;
-let typed = "";
-
+let secretClicks=0, secretWindowUntil=0, typed="";
 function refreshAdminUI(){
-  if(adminEnabled){
-    $("adminOnline").classList.remove("hidden");
-  } else {
-    $("adminOnline").classList.add("hidden");
-  }
+  if(adminEnabled) $("adminOnline").classList.remove("hidden");
+  else $("adminOnline").classList.add("hidden");
 }
 refreshAdminUI();
 
 $("logo").addEventListener("click", ()=>{
   secretClicks++;
-  if(secretClicks >= 7){
-    secretClicks = 0;
-    secretWindowUntil = Date.now() + 6000; // 6s window
-    typed = "";
+  if(secretClicks>=7){
+    secretClicks=0;
+    secretWindowUntil=Date.now()+6000;
+    typed="";
   }
 });
-
-window.addEventListener("keydown", (e)=>{
-  if(Date.now() > secretWindowUntil) return;
-  if(e.key.length !== 1) return;
-  typed += e.key;
-  if(typed.length > 4) typed = typed.slice(-4);
-  if(typed === "2332"){
-    adminEnabled = true;
+window.addEventListener("keydown",(e)=>{
+  if(Date.now()>secretWindowUntil) return;
+  if(e.key.length!==1) return;
+  typed+=e.key;
+  if(typed.length>4) typed=typed.slice(-4);
+  if(typed==="2332"){
+    adminEnabled=true;
     localStorage.setItem("admin_view","1");
     refreshAdminUI();
-    // hech qanday alert chiqarmaymiz (boshqalar sezmasin)
-    secretWindowUntil = 0;
-    typed = "";
+    secretWindowUntil=0; typed="";
   }
 });
 
-/* =======================
-   ONLINE PRESENCE (global)
-======================= */
+/* ==================== ONLINE PRESENCE ==================== */
 async function startOnlinePresence(){
   if(onlineChan) await supabase.removeChannel(onlineChan);
 
-  onlineChan = supabase.channel("online-global", {
-    config: { presence: { key: uid } }
-  });
+  onlineChan = supabase.channel("online-global", { config:{ presence:{ key: uid } } });
 
-  const setOnlineUI = (ok)=>{
+  function setOnlineUI(ok){
     $("dot").classList.toggle("on", !!ok);
     $("netText").textContent = ok ? "Online" : "Ulanmadi";
-  };
+  }
 
-  onlineChan.on("presence", { event:"sync" }, ()=>{
+  onlineChan.on("presence",{event:"sync"},()=>{
     setOnlineUI(true);
     if(adminEnabled){
-      const state = onlineChan.presenceState();
-      $("onlineCount").textContent = String(Object.keys(state).length);
-    }
-  });
-
-  onlineChan.on("presence", { event:"join" }, ()=>{
-    if(adminEnabled){
-      const state = onlineChan.presenceState();
-      $("onlineCount").textContent = String(Object.keys(state).length);
-    }
-  });
-
-  onlineChan.on("presence", { event:"leave" }, ()=>{
-    if(adminEnabled){
-      const state = onlineChan.presenceState();
-      $("onlineCount").textContent = String(Object.keys(state).length);
+      const st=onlineChan.presenceState();
+      $("onlineCount").textContent=String(Object.keys(st).length);
     }
   });
 
   onlineChan.subscribe(async (status)=>{
-    if(status === "SUBSCRIBED"){
+    if(status==="SUBSCRIBED"){
       setOnlineUI(true);
-      await onlineChan.track({ uid, ts: Date.now() });
-    } else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      await onlineChan.track({uid, ts:Date.now()});
+    } else if(status==="CHANNEL_ERROR" || status==="TIMED_OUT"){
       setOnlineUI(false);
       setStatus("❌ Supabase Realtime ulanmagan. Supabase → Realtime yoqilganini tekshir.");
     }
@@ -423,9 +346,7 @@ async function startOnlinePresence(){
 }
 startOnlinePresence();
 
-/* =======================
-   LEVEL SELECT
-======================= */
+/* ==================== LEVEL SELECT ==================== */
 document.querySelectorAll(".level").forEach(el=>{
   el.addEventListener("click", ()=>{
     document.querySelectorAll(".level").forEach(x=>x.classList.remove("active"));
@@ -437,66 +358,52 @@ document.querySelectorAll(".level").forEach(el=>{
   });
 });
 
-/* =======================
-   MATCHMAKING (no DB tables)
-   - same level channel
-   - looking -> proposal -> accept -> enter room
-======================= */
+/* ==================== MATCHMAKING ==================== */
 async function joinLevelChannel(){
   if(!level) return;
   if(levelChan) await supabase.removeChannel(levelChan);
 
   levelChan = supabase.channel("lvl-"+level, { config:{ presence:{ key: uid } } });
 
-  levelChan.on("broadcast", { event:"looking" }, (payload)=>{
-    const from = payload?.payload?.from;
-    if(!from || from === uid) return;
+  levelChan.on("broadcast",{event:"looking"},(payload)=>{
+    const from=payload?.payload?.from;
+    if(!from || from===uid) return;
     if(!searching || roomId) return;
 
-    // deterministic: smaller uid proposes
-    if(uid < from){
-      const a = [uid, from].sort();
-      const proposedRoom = `r_${level}_${a[0]}_${a[1]}`;
-      levelChan.send({
-        type:"broadcast",
-        event:"proposal",
-        payload:{ to: from, from: uid, roomId: proposedRoom }
-      });
+    if(uid<from){
+      const a=[uid,from].sort();
+      const proposedRoom=`r_${level}_${a[0]}_${a[1]}`;
+      levelChan.send({type:"broadcast",event:"proposal",payload:{to:from,from:uid,roomId:proposedRoom}});
     }
   });
 
-  levelChan.on("broadcast", { event:"proposal" }, async (payload)=>{
-    const p = payload?.payload;
-    if(!p || p.to !== uid) return;
+  levelChan.on("broadcast",{event:"proposal"},async (payload)=>{
+    const p=payload?.payload;
+    if(!p || p.to!==uid) return;
     if(!searching || roomId) return;
 
-    roomId = p.roomId;
-    peerId = p.from;
+    roomId=p.roomId; peerId=p.from;
+    $("callTag").textContent="Connecting";
+    setStatus("✅ <b>Topildi!</b> Ulanmoqda...");
 
-    setStatus(`✅ <b>Topildi!</b> Ulanmoqda...`);
-    $("callTag").textContent = "Connecting";
-
-    await levelChan.send({ type:"broadcast", event:"accept", payload:{ to: peerId, from: uid, roomId } });
+    await levelChan.send({type:"broadcast",event:"accept",payload:{to:peerId,from:uid,roomId}});
     await enterRoom(roomId, peerId);
   });
 
-  levelChan.on("broadcast", { event:"accept" }, async (payload)=>{
-    const p = payload?.payload;
-    if(!p || p.to !== uid) return;
+  levelChan.on("broadcast",{event:"accept"},async (payload)=>{
+    const p=payload?.payload;
+    if(!p || p.to!==uid) return;
     if(!searching || roomId) return;
 
-    roomId = p.roomId;
-    peerId = p.from;
-
-    setStatus(`✅ <b>Topildi!</b> Ulanmoqda...`);
-    $("callTag").textContent = "Connecting";
-
+    roomId=p.roomId; peerId=p.from;
+    $("callTag").textContent="Connecting";
+    setStatus("✅ <b>Topildi!</b> Ulanmoqda...");
     await enterRoom(roomId, peerId);
   });
 
   await levelChan.subscribe(async (status)=>{
-    if(status === "SUBSCRIBED"){
-      await levelChan.track({ uid, level, searching:false, ts:Date.now() });
+    if(status==="SUBSCRIBED"){
+      await levelChan.track({uid, level, searching:false, ts:Date.now()});
     }
   });
 }
@@ -505,179 +412,170 @@ async function startFinding(){
   if(!level) return alert("Level tanlang!");
   if(searching) return;
 
-  searching = true;
+  searching=true;
   $("chatBox").innerHTML="";
   $("chatInfo").textContent="Qidirilyapti...";
   $("callTag").textContent="Searching";
   setStatus(`🔎 <b>${level}</b> uchun <b>qidirilyapti...</b>`);
 
   await joinLevelChannel();
-  if(levelChan) await levelChan.track({ uid, level, searching:true, ts:Date.now() });
+  if(levelChan) await levelChan.track({uid, level, searching:true, ts:Date.now()});
 
   if(findPulse) clearInterval(findPulse);
-  findPulse = setInterval(()=>{
+  findPulse=setInterval(()=>{
     if(!levelChan || !searching || roomId) return;
-    levelChan.send({ type:"broadcast", event:"looking", payload:{ from: uid, ts: Date.now() } });
+    levelChan.send({type:"broadcast",event:"looking",payload:{from:uid, ts:Date.now()}});
   }, 650);
 
-  $("skipBtn").disabled = false;
+  $("skipBtn").disabled=false;
 }
 
 async function stopFindingOnly(){
-  searching = false;
+  searching=false;
   if(findPulse){ clearInterval(findPulse); findPulse=null; }
   if(levelChan){
-    try{ await levelChan.track({ uid, level, searching:false, ts:Date.now() }); }catch(e){}
+    try{ await levelChan.track({uid, level, searching:false, ts:Date.now()}); }catch(e){}
   }
   $("callTag").textContent="Idle";
   $("chatInfo").textContent="Room kerak";
-  $("skipBtn").disabled = true;
+  $("skipBtn").disabled=true;
 }
 
-/* =======================
-   ROOM: text + signaling
-======================= */
-async function enterRoom(rid, pid){
-  searching = false;
-  if(findPulse){ clearInterval(findPulse); findPulse=null; }
+/* ==================== VOICE (WebRTC audio-only) ==================== */
+let pc=null, localStream=null, isMuted=false;
+const rtcConfig={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}]};
 
-  $("roomTag").textContent = rid;
-  $("peerTag").textContent = pid ? pid.slice(0,8) : "—";
-  $("chatInfo").textContent = "Ulandi";
-  $("chatInput").disabled = false;
-  $("sendBtn").disabled = false;
-  $("muteBtn").disabled = false;
-  $("skipBtn").disabled = false;
-
-  if(roomChan) await supabase.removeChannel(roomChan);
-  roomChan = supabase.channel("room-"+rid);
-
-  // chat
-  roomChan.on("broadcast", { event:"chat" }, (payload)=>{
-    const p = payload?.payload;
-    if(!p || !p.text) return;
-    addMsg(p.text, (p.from===uid) ? "me" : "peer");
-  });
-
-  // end
-  roomChan.on("broadcast", { event:"end" }, (payload)=>{
-    const p = payload?.payload;
-    if(p?.from && p.from !== uid){
-      setStatus("⛔ Partner skip qildi. Yana Find bosing.");
-      resetAll(false);
-    }
-  });
-
-  // signaling
-  roomChan.on("broadcast", { event:"offer" }, async (payload)=>{
-    const p = payload?.payload;
-    if(!p || p.to !== uid) return;
-    await ensurePC(pid);
-    await pc.setRemoteDescription(new RTCSessionDescription(p.desc));
-    const answer = await pc.createAnswer();
-    await pc.setLocalDescription(answer);
-    roomChan.send({ type:"broadcast", event:"answer", payload:{ to: pid, from: uid, desc: pc.localDescription } });
-  });
-
-  roomChan.on("broadcast", { event:"answer" }, async (payload)=>{
-    const p = payload?.payload;
-    if(!p || p.to !== uid) return;
-    if(!pc) return;
-    if(!pc.currentRemoteDescription){
-      await pc.setRemoteDescription(new RTCSessionDescription(p.desc));
-    }
-  });
-
-  roomChan.on("broadcast", { event:"candidate" }, async (payload)=>{
-    const p = payload?.payload;
-    if(!p || p.to !== uid) return;
-    if(!pc) return;
-    try{ await pc.addIceCandidate(new RTCIceCandidate(p.cand)); }catch(e){}
-  });
-
-  await roomChan.subscribe(async (status)=>{
-    if(status === "SUBSCRIBED"){
-      setStatus("✅ <b>Topildi!</b> 🎧 <b>Gaplashishni boshlang</b> (voice tayyor).");
-      $("callTag").textContent="Connected";
-
-      // deterministic caller
-      if(uid < pid){
-        await ensurePC(pid);
-        const offer = await pc.createOffer();
-        await pc.setLocalDescription(offer);
-        roomChan.send({ type:"broadcast", event:"offer", payload:{ to: pid, from: uid, desc: pc.localDescription } });
-      }
-    }
-  });
-}
-
-/* =======================
-   VOICE: audio only
-======================= */
 async function ensurePC(pid){
   if(pc) return;
   pc = new RTCPeerConnection(rtcConfig);
 
   if(!localStream){
-    localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
-    $("micState").textContent = "Mic: on";
+    localStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
+    $("micState").textContent="Mic: on";
     monitorMic(localStream);
   }
-  localStream.getTracks().forEach(t=> pc.addTrack(t, localStream));
+  localStream.getTracks().forEach(t=>pc.addTrack(t, localStream));
 
-  pc.ontrack = (e)=> { $("remoteAudio").srcObject = e.streams[0]; };
-
-  pc.onicecandidate = (e)=>{
+  pc.ontrack=(e)=>{ $("remoteAudio").srcObject=e.streams[0]; };
+  pc.onicecandidate=(e)=>{
     if(e.candidate && roomChan){
-      roomChan.send({ type:"broadcast", event:"candidate", payload:{ to: pid, from: uid, cand: e.candidate.toJSON() } });
+      roomChan.send({type:"broadcast",event:"candidate",payload:{to:pid,from:uid,cand:e.candidate.toJSON()}});
     }
   };
 }
-
 function monitorMic(stream){
   try{
-    const ac = new (window.AudioContext||window.webkitAudioContext)();
-    const src = ac.createMediaStreamSource(stream);
-    const an = ac.createAnalyser();
+    const ac=new (window.AudioContext||window.webkitAudioContext)();
+    const src=ac.createMediaStreamSource(stream);
+    const an=ac.createAnalyser();
     an.fftSize=256; src.connect(an);
-    const data = new Uint8Array(an.frequencyBinCount);
+    const data=new Uint8Array(an.frequencyBinCount);
     const loop=()=>{
       if(!localStream) return;
       an.getByteFrequencyData(data);
       let sum=0; for(let i=0;i<data.length;i++) sum+=data[i];
       const avg=sum/data.length;
       const pct=Math.min(100, Math.max(0, (avg/255)*120));
-      $("micBar").style.width = pct.toFixed(0)+"%";
+      $("micBar").style.width=pct.toFixed(0)+"%";
       requestAnimationFrame(loop);
     };
     loop();
   }catch(e){}
 }
 
-/* =======================
-   BUTTONS
-======================= */
+/* ==================== ROOM ==================== */
+async function enterRoom(rid, pid){
+  searching=false;
+  if(findPulse){ clearInterval(findPulse); findPulse=null; }
+
+  $("roomTag").textContent=rid;
+  $("peerTag").textContent=pid ? pid.slice(0,8) : "—";
+  $("chatInfo").textContent="Ulandi";
+  $("chatInput").disabled=false;
+  $("sendBtn").disabled=false;
+  $("muteBtn").disabled=false;
+  $("skipBtn").disabled=false;
+
+  if(roomChan) await supabase.removeChannel(roomChan);
+  roomChan = supabase.channel("room-"+rid);
+
+  roomChan.on("broadcast",{event:"chat"},(payload)=>{
+    const p=payload?.payload;
+    if(!p?.text) return;
+    addMsg(p.text, (p.from===uid) ? "me" : "peer");
+  });
+
+  roomChan.on("broadcast",{event:"end"},(payload)=>{
+    const p=payload?.payload;
+    if(p?.from && p.from!==uid){
+      setStatus("⛔ Partner skip qildi. Yana Find bosing.");
+      resetAll(false);
+    }
+  });
+
+  roomChan.on("broadcast",{event:"offer"},async (payload)=>{
+    const p=payload?.payload;
+    if(!p || p.to!==uid) return;
+    await ensurePC(pid);
+    await pc.setRemoteDescription(new RTCSessionDescription(p.desc));
+    const ans=await pc.createAnswer();
+    await pc.setLocalDescription(ans);
+    roomChan.send({type:"broadcast",event:"answer",payload:{to:pid,from:uid,desc:pc.localDescription}});
+  });
+
+  roomChan.on("broadcast",{event:"answer"},async (payload)=>{
+    const p=payload?.payload;
+    if(!p || p.to!==uid) return;
+    if(!pc) return;
+    if(!pc.currentRemoteDescription){
+      await pc.setRemoteDescription(new RTCSessionDescription(p.desc));
+    }
+  });
+
+  roomChan.on("broadcast",{event:"candidate"},async (payload)=>{
+    const p=payload?.payload;
+    if(!p || p.to!==uid) return;
+    if(!pc) return;
+    try{ await pc.addIceCandidate(new RTCIceCandidate(p.cand)); }catch(e){}
+  });
+
+  await roomChan.subscribe(async (status)=>{
+    if(status==="SUBSCRIBED"){
+      $("callTag").textContent="Connected";
+      setStatus("✅ <b>Topildi!</b> 🎧 <b>Gaplashishni boshlang</b> (voice tayyor).");
+
+      if(uid < pid){
+        await ensurePC(pid);
+        const offer=await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        roomChan.send({type:"broadcast",event:"offer",payload:{to:pid,from:uid,desc:pc.localDescription}});
+      }
+    }
+  });
+}
+
+/* ==================== BUTTONS ==================== */
 $("findBtn").onclick = startFinding;
 
 $("sendBtn").onclick = ()=>{
-  const v = $("chatInput").value.trim();
+  const v=$("chatInput").value.trim();
   if(!v || !roomChan) return;
-  $("chatInput").value = "";
-  roomChan.send({ type:"broadcast", event:"chat", payload:{ from: uid, text: v, ts: Date.now() } });
+  $("chatInput").value="";
+  roomChan.send({type:"broadcast",event:"chat",payload:{from:uid,text:v,ts:Date.now()}});
 };
-$("chatInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("sendBtn").click(); });
+$("chatInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") $("sendBtn").click(); });
 
 $("muteBtn").onclick = ()=>{
   if(!localStream) return;
-  isMuted = !isMuted;
-  localStream.getAudioTracks().forEach(t=> t.enabled = !isMuted);
+  isMuted=!isMuted;
+  localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
   $("muteBtn").textContent = isMuted ? "🔊 Unmute" : "🔇 Mute";
   $("micState").textContent = isMuted ? "Mic: muted" : "Mic: on";
 };
 
-$("skipBtn").onclick = async ()=>{
+$("skipBtn").onclick = ()=>{
   if(roomChan && roomId){
-    roomChan.send({ type:"broadcast", event:"end", payload:{ from: uid, roomId } });
+    roomChan.send({type:"broadcast",event:"end",payload:{from:uid,roomId}});
   }
   setStatus("⏭ Skip qilindi. Yana Find bosing.");
   resetAll(false);
@@ -688,25 +586,19 @@ $("stopBtn").onclick = ()=>{
   resetAll(true);
 };
 
-/* =======================
-   RESET
-======================= */
+/* ==================== RESET ==================== */
 async function resetAll(fullStop){
   await stopFindingOnly();
 
-  if(roomChan){
-    await supabase.removeChannel(roomChan);
-    roomChan = null;
-  }
-  roomId = null;
-  peerId = null;
+  if(roomChan){ await supabase.removeChannel(roomChan); roomChan=null; }
+  roomId=null; peerId=null;
 
-  if(pc){ try{ pc.close(); }catch(e){} pc=null; }
-  $("remoteAudio").srcObject = null;
+  if(pc){ try{pc.close()}catch(e){} pc=null; }
+  $("remoteAudio").srcObject=null;
 
   if(fullStop && localStream){
     localStream.getTracks().forEach(t=>t.stop());
-    localStream = null;
+    localStream=null;
     $("micState").textContent="Mic: off";
     $("micBar").style.width="0%";
   }
@@ -729,4 +621,3 @@ async function resetAll(fullStop){
 </script>
 </body>
 </html>
-
