@@ -95,7 +95,7 @@
       cursor:pointer;transition:.2s;
     }
     .level:hover{transform:translateY(-2px);background:rgba(255,255,255,.11)}
-    /* ✅ level bosilganda ko‘k bo‘lsin */
+    /* ✅ Level bosilganda ko‘k bo‘lsin */
     .level.active{
       background:#4facfe;
       color:#001018;
@@ -184,9 +184,7 @@
     .sendBtn:hover{background:rgba(255,255,255,.14)}
     .hidden{display:none !important;}
 
-    /* ==========================
-       ✅ OPEN SCREEN (RASMDAGIDEK)
-    =========================== */
+    /* ✅ OPEN SCREEN (rasmdagidek) */
     #openScreen{
       position:fixed;inset:0;
       display:grid;place-items:center;
@@ -256,7 +254,7 @@
 
 <body>
 
-<!-- ✅ OPEN (rasmdagidek) -->
+<!-- ✅ OPEN -->
 <div id="openScreen">
   <div class="openCard">
     <div class="openTitleRow">
@@ -274,6 +272,7 @@
   </div>
 </div>
 
+<!-- ✅ MAIN APP -->
 <div class="app" id="mainApp" style="display:none;">
   <div class="top">
     <div class="brand">
@@ -286,7 +285,6 @@
     <div class="pill">
       <span class="dot" id="dot"></span>
       <span id="netText">Ulanmoqda...</span>
-      <!-- ✅ SZ 5 marta bosilganda ko‘rinadi -->
       <span id="adminOnline" class="hidden">• Online: <b id="onlineCount">0</b></span>
     </div>
   </div>
@@ -351,14 +349,6 @@ const SUPABASE_KEY = "sb_publishable_ehiDOw8qEeUw4lr--7uMJw_px5GvlSR";
 const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
 /* =======================
-   UI OPEN
-======================= */
-const openBtn = document.getElementById("openBtn");
-const openScreen = document.getElementById("openScreen");
-const mainApp = document.getElementById("mainApp");
-openBtn.onclick = () => { openScreen.style.display="none"; mainApp.style.display="block"; };
-
-/* =======================
    HELPERS
 ======================= */
 const $ = (id)=>document.getElementById(id);
@@ -400,7 +390,25 @@ const rtcConfig = { iceServers:[
 ] };
 
 /* =======================
-   ✅ SZ 5x BOSSA ONLINE COUNT KO‘RINADI
+   ✅ OPEN: ishonchli toggle (DOMContentLoaded)
+======================= */
+document.addEventListener("DOMContentLoaded", () => {
+  const openBtn = $("openBtn");
+  const openScreen = $("openScreen");
+  const mainApp = $("mainApp");
+
+  // boshida aniq holat
+  openScreen.classList.remove("hidden");
+  mainApp.style.display = "none";
+
+  openBtn.addEventListener("click", () => {
+    openScreen.classList.add("hidden");  // ✅ yashir
+    mainApp.style.display = "block";     // ✅ ko‘rsat
+  });
+});
+
+/* =======================
+   ✅ SZ 5x bosilsa Online count ko‘rinadi/yashirinadi
 ======================= */
 let showOnline = (localStorage.getItem("show_online")==="1");
 let logoClicks = 0;
@@ -450,18 +458,9 @@ async function startOnlinePresence(){
     $("onlineCount").textContent = String(Object.keys(state).length);
   };
 
-  onlineChan.on("presence", { event:"sync" }, ()=>{
-    setOnlineUI(true);
-    updateCount();
-  });
-
-  onlineChan.on("presence", { event:"join" }, ()=>{
-    updateCount();
-  });
-
-  onlineChan.on("presence", { event:"leave" }, ()=>{
-    updateCount();
-  });
+  onlineChan.on("presence", { event:"sync" }, ()=>{ setOnlineUI(true); updateCount(); });
+  onlineChan.on("presence", { event:"join" }, ()=>{ updateCount(); });
+  onlineChan.on("presence", { event:"leave" }, ()=>{ updateCount(); });
 
   onlineChan.subscribe(async (status)=>{
     if(status === "SUBSCRIBED"){
@@ -491,7 +490,6 @@ document.querySelectorAll(".level").forEach(el=>{
 
 /* =======================
    MATCHMAKING (same level)
-   - looking -> proposal -> accept -> enter room
 ======================= */
 async function joinLevelChannel(){
   if(!level) return;
@@ -504,7 +502,6 @@ async function joinLevelChannel(){
     if(!from || from === uid) return;
     if(!searching || roomId) return;
 
-    // deterministic: kichik uid taklif qiladi
     if(uid < from){
       const a = [uid, from].sort();
       const proposedRoom = `r_${level}_${a[0]}_${a[1]}`;
@@ -603,14 +600,12 @@ async function enterRoom(rid, pid){
   if(roomChan) await supabase.removeChannel(roomChan);
   roomChan = supabase.channel("room-"+rid);
 
-  // chat
   roomChan.on("broadcast", { event:"chat" }, (payload)=>{
     const p = payload?.payload;
     if(!p || !p.text) return;
     addMsg(p.text, (p.from===uid) ? "me" : "peer");
   });
 
-  // end
   roomChan.on("broadcast", { event:"end" }, (payload)=>{
     const p = payload?.payload;
     if(p?.from && p.from !== uid){
@@ -619,7 +614,6 @@ async function enterRoom(rid, pid){
     }
   });
 
-  // signaling
   roomChan.on("broadcast", { event:"offer" }, async (payload)=>{
     const p = payload?.payload;
     if(!p || p.to !== uid) return;
@@ -651,7 +645,6 @@ async function enterRoom(rid, pid){
       setStatus("✅ <b>Topildi!</b> 🎧 <b>Gaplashishni boshlang</b> (voice tayyor).");
       $("callTag").textContent="Connected";
 
-      // deterministic caller
       if(uid < pid){
         await ensurePC(pid);
         const offer = await pc.createOffer();
