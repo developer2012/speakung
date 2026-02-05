@@ -3,10 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Fast Match — Voice + Text (FINAL)</title>
+  <title>Fast Match — Supabase Realtime (Voice+Text)</title>
 
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+  <!-- Supabase JS v2 -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 
   <style>
     :root{
@@ -134,11 +134,7 @@
     }
     .tag b{color:#fff}
 
-    .panels{
-      display:grid;
-      grid-template-columns: 1fr 1fr;
-      gap:12px;
-    }
+    .panels{display:grid;grid-template-columns: 1fr 1fr;gap:12px;}
     @media(max-width: 980px){ .stage{min-height:700px} .panels{grid-template-columns:1fr} }
 
     .panel{
@@ -216,12 +212,12 @@
   <div class="openCard">
     <div class="openTitle">🎤 Fast Match</div>
     <div class="openSub">
-      Find bosilganda: <b>Qidirilyapti → Topildi → Gaplashish</b><br>
-      Voice + Text ikkalasi ham bor.
+      Level tanlang → Find → <b>Qidirilyapti → Topildi → Gaplashish</b><br>
+      Voice (audio-only) + Text bor.
     </div>
     <button class="primary openBtn" id="openBtn">🚀 OPEN</button>
     <div class="openSub" style="margin-top:10px;opacity:.85">
-      Admin online count (faqat sen): logo 5 marta → kod: <b>2332</b>
+      Online count faqat sen: logo 5 marta → kod: <b>2332</b>
     </div>
   </div>
 </div>
@@ -231,7 +227,7 @@
     <div class="brand">
       <div class="logo" id="logo">SZ</div>
       <div>
-        <h1>Fast Match • Voice + Text</h1>
+        <h1>Supabase Realtime • Voice + Text</h1>
         <p>Find → Qidirilyapti → Topildi → Gaplashish</p>
       </div>
     </div>
@@ -245,7 +241,7 @@
   <div class="content">
     <div class="card">
       <h2>1) Level tanlang <span class="small" id="picked">—</span></h2>
-      <div class="small">Bir xil leveldagi odam bo‘lsa tezda topadi. Yo‘q bo‘lsa qidirishda turadi.</div>
+      <div class="small">Bir xil leveldagi online odam bo‘lsa tezda topadi. Yo‘q bo‘lsa qidirishda turadi.</div>
 
       <div class="levels">
         <div class="level">A1</div><div class="level">A2</div><div class="level">B1</div>
@@ -294,48 +290,19 @@
 </div>
 
 <script>
-/* OPEN */
-openBtn.onclick = () => { openScreen.style.display="none"; mainApp.style.display="block"; };
+/* ============ 1) Supabase client (senda tayyor) ============ */
+const SUPABASE_URL = "https://snqkwdwoxtbkaqfhehxq.supabase.co";
+const SUPABASE_KEY = "sb_publishable_ehiDOw8qEeUw4lr--7uMJw_px5GvlSR";
+const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 
-/* 🔥 Firebase config (TO‘LDIR) */
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  databaseURL: "https://YOUR_PROJECT-default-rtdb.firebaseio.com",
-  projectId: "YOUR_PROJECT",
-};
-firebase.initializeApp(firebaseConfig);
-const db = firebase.database();
+/* ============ 2) UI Open ============ */
+openBtn.onclick = () => { openScreen.style.display="none"; mainApp.style.display="block"; };
 
 /* Helpers */
 const $ = (id)=>document.getElementById(id);
-let uid = "u_" + Math.random().toString(36).slice(2);
-let level = null;
-
-let connected = false;
-let searching = false;
-let roomId = null;
-let peerId = null;
-
-let localStream = null;
-let pc = null;
-let isMuted = false;
-
-let searchLoop = null;
-let cleanLoop = null;
-let unsub = [];
-
+const esc = (s)=> (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;");
+const nowTime = ()=> new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
 function setStatus(html){ $("status").innerHTML = html; }
-function setNet(ok){
-  $("dot").classList.toggle("on", !!ok);
-  $("netText").textContent = ok ? "Online" : "Ulanmadi";
-}
-function on(ref, ev, fn){ ref.on(ev, fn); unsub.push(()=>ref.off(ev, fn)); }
-function offAll(){ unsub.forEach(f=>{try{f()}catch(e){}}); unsub=[]; }
-function stopLoops(){ if(searchLoop){clearInterval(searchLoop);searchLoop=null;} if(cleanLoop){clearInterval(cleanLoop);cleanLoop=null;} }
-function nowTime(){ return new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}); }
-function esc(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
-
 function addMsg(text, who){
   const box = $("chatBox");
   const d = document.createElement("div");
@@ -345,52 +312,90 @@ function addMsg(text, who){
   box.scrollTop = box.scrollHeight;
 }
 
-/* Admin view */
+/* ============ 3) State ============ */
+const uid = "u_" + Math.random().toString(36).slice(2);
+let level = null;
+let isAdmin = (localStorage.getItem("admin_view")==="1");
+
+let onlineChan = null;   // global presence
+let levelChan = null;    // matchmaking channel (per level)
+let roomChan = null;     // room channel
+let roomId = null;
+let peerId = null;
+
+let searching = false;
+let findPulse = null;
+
+/* Voice */
+let pc = null;
+let localStream = null;
+let isMuted = false;
+
+const rtcConfig = { iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}] };
+
+/* ============ 4) Admin unlock (logo 5 click) ============ */
 let clicks=0;
 $("logo").addEventListener("click", ()=>{
   clicks++;
   if(clicks>=5){
     clicks=0;
     const code = prompt("Admin kod?");
-    if(code==="2332"){ localStorage.setItem("admin_view","1"); location.reload(); }
-    else alert("Noto‘g‘ri kod");
+    if(code==="2332"){
+      localStorage.setItem("admin_view","1");
+      location.reload();
+    } else alert("Noto‘g‘ri kod");
   }
 });
 
-/* Presence + Correct Online Count (only active in last 45s) */
-function setupPresence(){
-  const connectedRef = db.ref(".info/connected");
-  on(connectedRef, "value", (snap)=>{
-    connected = snap.val()===true;
-    setNet(connected);
+/* ============ 5) Online presence (global) ============ */
+async function startOnlinePresence(){
+  // cleanup old
+  if(onlineChan) await supabase.removeChannel(onlineChan);
 
-    if(connected){
-      const meRef = db.ref("presence/"+uid);
-      meRef.onDisconnect().remove();
-      meRef.set({ ts: Date.now(), level: level || "—" });
+  onlineChan = supabase.channel("online-global", {
+    config: { presence: { key: uid } }
+  });
 
-      const hb = setInterval(()=> meRef.update({ ts: Date.now(), level: level || "—" }), 15000);
-      unsub.push(()=> clearInterval(hb));
-    } else {
-      setStatus("❌ Firebase ulanmagan. databaseURL va Rules tekshiring.");
+  onlineChan.on("presence", { event: "sync" }, () => {
+    const state = onlineChan.presenceState();
+    const count = Object.keys(state).length;
+    $("dot").classList.add("on");
+    $("netText").textContent = "Online";
+
+    if(isAdmin){
+      $("adminOnline").classList.remove("hidden");
+      $("onlineCount").textContent = String(count);
     }
   });
 
-  const adminEnabled = localStorage.getItem("admin_view")==="1";
-  if(adminEnabled){
-    $("adminOnline").classList.remove("hidden");
-    const pres = db.ref("presence");
-    on(pres, "value", (snap)=>{
-      const v = snap.val() || {};
-      const now = Date.now();
-      const active = Object.values(v).filter(x => x && x.ts && (now - x.ts) <= 45000).length;
-      $("onlineCount").textContent = active;
-    });
-  }
-}
-setupPresence();
+  onlineChan.on("presence", { event: "join" }, () => {
+    if(isAdmin){
+      const state = onlineChan.presenceState();
+      $("onlineCount").textContent = String(Object.keys(state).length);
+    }
+  });
+  onlineChan.on("presence", { event: "leave" }, () => {
+    if(isAdmin){
+      const state = onlineChan.presenceState();
+      $("onlineCount").textContent = String(Object.keys(state).length);
+    }
+  });
 
-/* Level select */
+  onlineChan.subscribe(async (status) => {
+    if(status === "SUBSCRIBED"){
+      $("dot").classList.add("on");
+      $("netText").textContent = "Online";
+      await onlineChan.track({ uid, ts: Date.now() });
+    } else if(status === "CHANNEL_ERROR" || status === "TIMED_OUT"){
+      $("dot").classList.remove("on");
+      $("netText").textContent = "Ulanmadi";
+      setStatus("❌ Supabase Realtime ulanmagan. Project Settings → Realtime yoqilganini tekshir.");
+    }
+  });
+}
+startOnlinePresence();
+
+/* ============ 6) Level select ============ */
 document.querySelectorAll(".level").forEach(el=>{
   el.addEventListener("click", ()=>{
     document.querySelectorAll(".level").forEach(x=>x.classList.remove("active"));
@@ -398,26 +403,246 @@ document.querySelectorAll(".level").forEach(el=>{
     level = el.textContent.trim();
     $("picked").textContent = level;
     $("levelTag").textContent = level;
-    db.ref("presence/"+uid).update({ level }).catch(()=>{});
+
     setStatus(`✅ Level: <b>${level}</b>. Endi “Find Partner” bosing.`);
   });
 });
 
-/* WebRTC Audio */
-const rtcConfig = { iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}] };
+/* ============ 7) Matchmaking via Realtime channel (DB tablesiz) ============ */
+/*
+  Qanday ishlaydi:
+  - user Find bosadi => level channelga kiradi + presence track (searching:true)
+  - har 700ms broadcast "looking" yuboradi
+  - boshqa user "looking" ko‘rsa => deterministik: faqat kichik uid proposal yuboradi
+  - proposal => roomId (sorted uid) bilan
+  - ikkalasi room channelga o‘tadi
+*/
+async function joinLevelChannel(){
+  if(!level) return;
+  if(levelChan) await supabase.removeChannel(levelChan);
 
-async function startMic(){
-  if(localStream) return localStream;
-  localStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
-  $("micState").textContent = "Mic: on";
-  monitorMic(localStream);
-  return localStream;
+  levelChan = supabase.channel("lvl-"+level, { config: { presence: { key: uid } } });
+
+  levelChan.on("presence", { event: "sync" }, () => {
+    // optional
+  });
+
+  // someone broadcasting looking
+  levelChan.on("broadcast", { event: "looking" }, (payload) => {
+    const from = payload?.payload?.from;
+    if(!from || from === uid) return;
+    if(!searching) return;
+    if(roomId) return;
+
+    // deterministik initiator: smaller uid initiates proposal
+    if(uid < from){
+      const a = [uid, from].sort();
+      const proposedRoom = `r_${level}_${a[0]}_${a[1]}`;
+      // send proposal directly
+      levelChan.send({
+        type: "broadcast",
+        event: "proposal",
+        payload: { to: from, from: uid, roomId: proposedRoom }
+      });
+    }
+  });
+
+  // proposal received
+  levelChan.on("broadcast", { event: "proposal" }, async (payload) => {
+    const p = payload?.payload;
+    if(!p || p.to !== uid) return;
+    if(!searching) return;
+    if(roomId) return;
+
+    // accept
+    roomId = p.roomId;
+    peerId = p.from;
+
+    setStatus(`✅ <b>Topildi!</b> Ulanmoqda...`);
+    $("callTag").textContent = "Connecting";
+
+    await levelChan.send({
+      type:"broadcast",
+      event:"accept",
+      payload:{ to: peerId, from: uid, roomId }
+    });
+
+    await enterRoom(roomId, peerId);
+  });
+
+  // accept received
+  levelChan.on("broadcast", { event: "accept" }, async (payload) => {
+    const p = payload?.payload;
+    if(!p || p.to !== uid) return;
+    if(!searching) return;
+    if(roomId) return;
+
+    roomId = p.roomId;
+    peerId = p.from;
+
+    setStatus(`✅ <b>Topildi!</b> Ulanmoqda...`);
+    $("callTag").textContent = "Connecting";
+
+    await enterRoom(roomId, peerId);
+  });
+
+  // subscribe
+  await levelChan.subscribe(async (status)=>{
+    if(status==="SUBSCRIBED"){
+      // track presence (searching state updated later)
+      await levelChan.track({ uid, level, searching:false, ts:Date.now() });
+    }
+  });
 }
-function stopMic(){
-  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
-  $("micState").textContent = "Mic: off";
-  $("micBar").style.width = "0%";
+
+async function startFinding(){
+  if(!level) return alert("Level tanlang!");
+  if(searching) return;
+
+  searching = true;
+  $("chatBox").innerHTML="";
+  $("chatInfo").textContent="Qidirilyapti...";
+  $("callTag").textContent="Searching";
+  setStatus(`🔎 <b>${level}</b> uchun <b>qidirilyapti...</b>`);
+
+  await joinLevelChannel();
+  // update presence
+  if(levelChan) await levelChan.track({ uid, level, searching:true, ts:Date.now() });
+
+  // pulse broadcast quickly
+  if(findPulse) clearInterval(findPulse);
+  findPulse = setInterval(()=>{
+    if(!levelChan || !searching || roomId) return;
+    levelChan.send({ type:"broadcast", event:"looking", payload:{ from: uid, ts: Date.now() } });
+  }, 700);
+
+  $("skipBtn").disabled = false;
 }
+
+async function stopFindingOnly(){
+  searching = false;
+  if(findPulse){ clearInterval(findPulse); findPulse=null; }
+
+  if(levelChan){
+    try{ await levelChan.track({ uid, level, searching:false, ts:Date.now() }); }catch(e){}
+  }
+  $("callTag").textContent="Idle";
+  $("chatInfo").textContent="Room kerak";
+  $("skipBtn").disabled = true;
+}
+
+/* ============ 8) Room: voice + text + signaling via broadcasts ============ */
+async function enterRoom(rid, pid){
+  // stop searching loop
+  searching = false;
+  if(findPulse){ clearInterval(findPulse); findPulse=null; }
+
+  // UI
+  $("roomTag").textContent = rid;
+  $("peerTag").textContent = pid ? pid.slice(0,8) : "—";
+  $("chatInfo").textContent = "Ulandi";
+  $("chatInput").disabled = false;
+  $("sendBtn").disabled = false;
+  $("muteBtn").disabled = false;
+  $("skipBtn").disabled = false;
+
+  // leave previous room channel
+  if(roomChan) await supabase.removeChannel(roomChan);
+
+  roomChan = supabase.channel("room-"+rid);
+
+  // text chat
+  roomChan.on("broadcast", { event:"chat" }, (payload)=>{
+    const p = payload?.payload;
+    if(!p || !p.text) return;
+    addMsg(p.text, (p.from===uid) ? "me" : "peer");
+  });
+
+  // skip
+  roomChan.on("broadcast", { event:"end" }, (payload)=>{
+    const p = payload?.payload;
+    if(p?.from && p.from !== uid){
+      setStatus("⛔ Partner skip qildi. Yana Find bosing.");
+      resetAll(false);
+    }
+  });
+
+  // signaling: offer/answer/candidate
+  roomChan.on("broadcast", { event:"offer" }, async (payload)=>{
+    const p = payload?.payload;
+    if(!p || p.to !== uid) return;
+    await ensurePC(pid);
+
+    await pc.setRemoteDescription(new RTCSessionDescription(p.desc));
+    const answer = await pc.createAnswer();
+    await pc.setLocalDescription(answer);
+
+    roomChan.send({
+      type:"broadcast",
+      event:"answer",
+      payload:{ to: pid, from: uid, desc: pc.localDescription }
+    });
+  });
+
+  roomChan.on("broadcast", { event:"answer" }, async (payload)=>{
+    const p = payload?.payload;
+    if(!p || p.to !== uid) return;
+    if(!pc) return;
+    if(!pc.currentRemoteDescription){
+      await pc.setRemoteDescription(new RTCSessionDescription(p.desc));
+    }
+  });
+
+  roomChan.on("broadcast", { event:"candidate" }, async (payload)=>{
+    const p = payload?.payload;
+    if(!p || p.to !== uid) return;
+    if(!pc) return;
+    try{ await pc.addIceCandidate(new RTCIceCandidate(p.cand)); }catch(e){}
+  });
+
+  await roomChan.subscribe(async (status)=>{
+    if(status==="SUBSCRIBED"){
+      setStatus("✅ <b>Topildi!</b> 🎧 <b>Gaplashishni boshlang</b> (voice tayyor).");
+      $("callTag").textContent="Connected";
+      // start call deterministically (lower uid makes offer)
+      if(uid < pid){
+        await ensurePC(pid);
+        const offer = await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        roomChan.send({
+          type:"broadcast",
+          event:"offer",
+          payload:{ to: pid, from: uid, desc: pc.localDescription }
+        });
+      }
+    }
+  });
+}
+
+async function ensurePC(pid){
+  if(pc) return;
+  pc = new RTCPeerConnection(rtcConfig);
+
+  // mic
+  if(!localStream){
+    localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+    $("micState").textContent = "Mic: on";
+    monitorMic(localStream);
+  }
+  localStream.getTracks().forEach(t=> pc.addTrack(t, localStream));
+
+  pc.ontrack = (e)=> { $("remoteAudio").srcObject = e.streams[0]; };
+  pc.onicecandidate = (e)=>{
+    if(e.candidate && roomChan){
+      roomChan.send({
+        type:"broadcast",
+        event:"candidate",
+        payload:{ to: pid, from: uid, cand: e.candidate.toJSON() }
+      });
+    }
+  };
+}
+
 function monitorMic(stream){
   try{
     const ac = new (window.AudioContext||window.webkitAudioContext)();
@@ -425,10 +650,8 @@ function monitorMic(stream){
     const an = ac.createAnalyser();
     an.fftSize=256; src.connect(an);
     const data = new Uint8Array(an.frequencyBinCount);
-    let alive=true;
-    unsub.push(()=>{ alive=false; try{ac.close()}catch(e){} });
     const loop=()=>{
-      if(!alive) return;
+      if(!localStream) return;
       an.getByteFrequencyData(data);
       let sum=0; for(let i=0;i<data.length;i++) sum+=data[i];
       const avg=sum/data.length;
@@ -440,238 +663,30 @@ function monitorMic(stream){
   }catch(e){}
 }
 
-function closePeer(){
-  if(pc){ try{pc.close()}catch(e){} pc=null; }
-  $("remoteAudio").srcObject=null;
-  $("callTag").textContent="Idle";
-  $("peerTag").textContent="—";
-  $("roomTag").textContent="—";
-  $("chatInfo").textContent="Room kerak";
-  $("chatInput").disabled=true;
-  $("sendBtn").disabled=true;
-  $("muteBtn").disabled=true;
-  $("skipBtn").disabled=true;
-  isMuted=false;
-  $("muteBtn").textContent="🔇 Mute";
-}
-async function initPC(){
-  pc = new RTCPeerConnection(rtcConfig);
-  const stream = await startMic();
-  stream.getTracks().forEach(t=>pc.addTrack(t, stream));
-  pc.ontrack = (e)=> $("remoteAudio").srcObject = e.streams[0];
-  pc.onconnectionstatechange = ()=> $("callTag").textContent = pc.connectionState;
-}
-function sig(room){ return db.ref("signal/"+room); }
+/* ============ 9) Buttons ============ */
+$("findBtn").onclick = startFinding;
 
-async function caller(){
-  await initPC();
-  const s=sig(roomId);
-  const myCand=s.child("candidates").child(uid);
-  pc.onicecandidate=(e)=>{ if(e.candidate) myCand.push(e.candidate.toJSON()); };
-
-  const offer=await pc.createOffer();
-  await pc.setLocalDescription(offer);
-  await s.child("offer").set({type:offer.type,sdp:offer.sdp,from:uid});
-
-  on(s.child("answer"),"value", async (snap)=>{
-    const a=snap.val();
-    if(a && pc && !pc.currentRemoteDescription) await pc.setRemoteDescription(new RTCSessionDescription(a));
-  });
-
-  on(s.child("candidates").child(peerId),"child_added", async (snap)=>{
-    const c=snap.val(); if(c) try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){}
-  });
-}
-async function callee(){
-  await initPC();
-  const s=sig(roomId);
-  const myCand=s.child("candidates").child(uid);
-  pc.onicecandidate=(e)=>{ if(e.candidate) myCand.push(e.candidate.toJSON()); };
-
-  on(s.child("offer"),"value", async (snap)=>{
-    const o=snap.val();
-    if(!o || !pc || pc.currentRemoteDescription) return;
-    await pc.setRemoteDescription(new RTCSessionDescription(o));
-    const ans=await pc.createAnswer();
-    await pc.setLocalDescription(ans);
-    await s.child("answer").set({type:ans.type,sdp:ans.sdp,from:uid});
-  });
-
-  on(s.child("candidates").child(peerId),"child_added", async (snap)=>{
-    const c=snap.val(); if(c) try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){}
-  });
-}
-
-/* Matchmaking FAST + VERY CLEAR statuses */
-function qMe(){ return db.ref(`queue/${level}/${uid}`); }
-function qLvl(){ return db.ref(`queue/${level}`); }
-function room(id){ return db.ref(`rooms/${id}`); }
-
-async function ensureQueue(){
-  await qMe().set({ts:Date.now(), alive:Date.now(), claimedBy:null, matchedRoom:null});
-  qMe().onDisconnect().remove();
-}
-async function cleanupDead(maxAge=45000){
-  const snap=await qLvl().once("value");
-  const v=snap.val()||{};
-  const now=Date.now();
-  const updates={};
-  for(const [id,obj] of Object.entries(v)){
-    const t=(obj && (obj.alive||obj.ts))||0;
-    if(now-t>maxAge) updates[`queue/${level}/${id}`]=null;
-  }
-  if(Object.keys(updates).length) await db.ref().update(updates);
-}
-
-async function fastFind(){
-  if(!connected){
-    setStatus("❌ Firebase ulanmagan. databaseURL / Rules tekshiring.");
-    return;
-  }
-  if(!level){ alert("Level tanlang!"); return; }
-  if(searching) return;
-
-  searching=true;
-  setStatus(`🔎 <b>${level}</b> uchun <b>qidirilyapti...</b>`);
-  $("callTag").textContent="Searching";
-  $("chatBox").innerHTML="";
-  $("chatInfo").textContent="Qidirilyapti...";
-
-  await ensureQueue();
-
-  // alive heartbeat
-  const aliveTimer=setInterval(()=> qMe().update({alive:Date.now()}).catch(()=>{}), 8000);
-  unsub.push(()=>clearInterval(aliveTimer));
-
-  // if matchedRoom comes, join immediately
-  on(qMe().child("matchedRoom"), "value", async (snap)=>{
-    const r=snap.val();
-    if(r && searching){
-      roomId=r;
-      searching=false;
-      stopLoops();
-      await joinRoomAndStart();
-    }
-  });
-
-  cleanLoop=setInterval(()=>{ if(searching) cleanupDead().catch(()=>{}); }, 7000);
-
-  searchLoop=setInterval(async ()=>{
-    if(!searching) return;
-
-    const snap=await qLvl().orderByChild("ts").limitToFirst(30).once("value");
-    const list=snap.val()||{};
-    const ids=Object.keys(list).filter(x=>x!==uid);
-
-    for(const otherId of ids){
-      const node=list[otherId];
-      if(!node || node.matchedRoom) continue;
-
-      const claimRef=db.ref(`queue/${level}/${otherId}/claimedBy`);
-      const res=await claimRef.transaction(cur => (cur===null?uid:undefined));
-
-      if(res.committed){
-        const a=[uid, otherId].sort();
-        roomId=`r_${level}_${a[0]}_${a[1]}`;
-        peerId=otherId;
-
-        // TOPILDI status (aniq)
-        setStatus(`✅ <b>Topildi!</b> Ulanmoqda...`);
-        $("callTag").textContent="Connecting";
-
-        const updates={};
-        updates[`rooms/${roomId}`]={level,createdAt:Date.now(),users:{[uid]:true,[otherId]:true},endedBy:null};
-        updates[`queue/${level}/${uid}/matchedRoom`]=roomId;
-        updates[`queue/${level}/${otherId}/matchedRoom`]=roomId;
-        await db.ref().update(updates);
-
-        searching=false;
-        stopLoops();
-        await joinRoomAndStart();
-        return;
-      }
-    }
-  }, 350);
-}
-
-async function joinRoomAndStart(){
-  $("roomTag").textContent=roomId;
-  $("chatInfo").textContent="Ulandi";
-  $("chatInput").disabled=false;
-  $("sendBtn").disabled=false;
-  $("skipBtn").disabled=false;
-  $("muteBtn").disabled=false;
-
-  // remove my queue
-  qMe().remove().catch(()=>{});
-
-  const rSnap=await room(roomId).once("value");
-  const r=rSnap.val();
-  if(!r || !r.users){
-    setStatus("❌ Room yo‘q. Qayta Find bosing.");
-    return resetAll(false);
-  }
-  const users=Object.keys(r.users);
-  peerId = users.find(x=>x!==uid) || peerId;
-  $("peerTag").textContent = peerId ? peerId.slice(0,8) : "—";
-
-  // endedBy listener
-  on(room(roomId).child("endedBy"), "value", (snap)=>{
-    const v=snap.val();
-    if(v && v!==uid){
-      setStatus("⛔ Partner skip qildi. Yana Find bosing.");
-      resetAll(false);
-    }
-  });
-
-  // deterministic caller
-  const amCaller = peerId ? ([uid, peerId].sort()[0]===uid) : true;
-
-  try{
-    if(amCaller){ $("callTag").textContent="Caller"; await caller(); }
-    else { $("callTag").textContent="Callee"; await callee(); }
-
-    // FINAL READY status (aniq)
-    setStatus("✅ <b>Topildi!</b> 🎧 <b>Gaplashishni boshlang</b> (voice tayyor).");
-  }catch(e){
-    setStatus("❌ Voice ulanish xato. Skip bosing va qayta urinib ko‘ring.");
-  }
-
-  // text chat listener
-  on(db.ref(`rooms/${roomId}/messages`), "child_added", (snap)=>{
-    const m=snap.val();
-    if(!m || !m.text) return;
-    addMsg(m.text, (m.user===uid) ? "me" : "peer");
-  });
-}
-
-/* Text send */
-$("sendBtn").onclick = async ()=>{
-  const v=$("chatInput").value.trim();
-  if(!v || !roomId) return;
+$("sendBtn").onclick = ()=>{
+  const v = $("chatInput").value.trim();
+  if(!v || !roomChan) return;
   $("chatInput").value="";
-  await db.ref(`rooms/${roomId}/messages`).push({user:uid,text:v,ts:Date.now()});
+  roomChan.send({ type:"broadcast", event:"chat", payload:{ from: uid, text: v, ts: Date.now() } });
 };
-$("chatInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") $("sendBtn").click(); });
-
-/* Buttons */
-$("findBtn").onclick = fastFind;
+$("chatInput").addEventListener("keydown", (e)=>{ if(e.key==="Enter") $("sendBtn").click(); });
 
 $("muteBtn").onclick = ()=>{
   if(!localStream) return;
-  isMuted=!isMuted;
-  localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
+  isMuted = !isMuted;
+  localStream.getAudioTracks().forEach(t=> t.enabled = !isMuted);
   $("muteBtn").textContent = isMuted ? "🔊 Unmute" : "🔇 Mute";
   $("micState").textContent = isMuted ? "Mic: muted" : "Mic: on";
 };
 
 $("skipBtn").onclick = async ()=>{
-  try{
-    if(roomId){
-      await room(roomId).update({endedBy:uid});
-      await db.ref("signal/"+roomId).remove().catch(()=>{});
-    }
-  }catch(e){}
+  // end current room or stop searching
+  if(roomChan && roomId){
+    roomChan.send({ type:"broadcast", event:"end", payload:{ from: uid, roomId } });
+  }
   setStatus("⏭ Skip qilindi. Yana Find bosing.");
   resetAll(false);
 };
@@ -681,29 +696,55 @@ $("stopBtn").onclick = ()=>{
   resetAll(true);
 };
 
-function resetAll(fullStop){
-  stopLoops();
-  offAll();
+/* ============ 10) Reset ============ */
+async function resetAll(fullStop){
+  // stop finding
+  await stopFindingOnly();
 
-  if(level) db.ref(`queue/${level}/${uid}`).remove().catch(()=>{});
-  closePeer();
+  // close room
+  if(roomChan){
+    await supabase.removeChannel(roomChan);
+    roomChan = null;
+  }
+  roomId = null;
+  peerId = null;
 
-  if(fullStop) stopMic();
+  // close pc
+  if(pc){
+    try{ pc.close(); }catch(e){}
+    pc = null;
+  }
+  $("remoteAudio").srcObject = null;
 
-  searching=false; roomId=null; peerId=null;
+  // stop mic if full stop
+  if(fullStop && localStream){
+    localStream.getTracks().forEach(t=>t.stop());
+    localStream = null;
+    $("micState").textContent="Mic: off";
+    $("micBar").style.width="0%";
+  }
 
+  // UI
+  $("roomTag").textContent="—";
+  $("peerTag").textContent="—";
+  $("callTag").textContent="Idle";
+  $("chatInfo").textContent="Room kerak";
   $("chatBox").innerHTML="";
   $("chatInput").disabled=true;
   $("sendBtn").disabled=true;
-  $("chatInfo").textContent="Room kerak";
-
-  $("callTag").textContent="Idle";
-  $("peerTag").textContent="—";
-  $("roomTag").textContent="—";
+  $("muteBtn").disabled=true;
+  $("skipBtn").disabled=true;
+  isMuted=false;
+  $("muteBtn").textContent="🔇 Mute";
 
   if(level) setStatus(`✅ Tayyor. Level: <b>${level}</b>. “Find Partner” bosing.`);
   else setStatus("Level tanlang. Keyin “Find Partner”.");
 }
+
+/* ============ 11) Initial net UI ============ */
+$("dot").classList.remove("on");
+$("netText").textContent = "Ulanmoqda...";
+if(isAdmin) $("adminOnline").classList.remove("hidden");
 </script>
 </body>
 </html>
