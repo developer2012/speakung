@@ -3,9 +3,8 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Speaking Match — Fast Match + Voice + Text</title>
+  <title>Fast Match — Voice + Text (FINAL)</title>
 
-  <!-- Firebase compat (simple for single HTML) -->
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
 
@@ -13,14 +12,12 @@
     :root{
       --bg1:#07131f; --bg2:#0b2a3a;
       --card:rgba(255,255,255,.08);
-      --card2:rgba(255,255,255,.10);
       --stroke:rgba(255,255,255,.14);
       --txt:rgba(255,255,255,.92);
       --muted:rgba(255,255,255,.70);
       --a:#00f2fe; --b:#4facfe;
       --ok:#26e6a7; --bad:#ff5a7a; --warn:#ffcf5a;
-      --r:18px;
-      --shadow:0 18px 60px rgba(0,0,0,.45);
+      --r:18px; --shadow:0 18px 60px rgba(0,0,0,.45);
     }
     *{box-sizing:border-box;margin:0;padding:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial}
     body{
@@ -75,9 +72,7 @@
       gap:14px;
       padding:14px;
     }
-    @media(max-width: 980px){
-      .content{grid-template-columns:1fr}
-    }
+    @media(max-width: 980px){ .content{grid-template-columns:1fr} }
 
     .card{
       background:var(--card);
@@ -85,11 +80,7 @@
       border-radius:var(--r);
       padding:14px;
     }
-    .card h2{
-      font-size:13px;
-      display:flex;align-items:center;justify-content:space-between;
-      margin-bottom:8px;
-    }
+    .card h2{font-size:13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
     .small{font-size:12px;color:var(--muted);line-height:1.45}
 
     .levels{
@@ -98,9 +89,7 @@
       gap:10px;
       margin-top:10px;
     }
-    @media(max-width: 430px){
-      .levels{grid-template-columns: repeat(3, 1fr)}
-    }
+    @media(max-width: 430px){ .levels{grid-template-columns: repeat(3, 1fr)} }
     .level{
       padding:12px 0;border-radius:14px;
       background:rgba(255,255,255,.07);
@@ -109,10 +98,7 @@
       cursor:pointer;transition:.2s;
     }
     .level:hover{transform:translateY(-2px);background:rgba(255,255,255,.11)}
-    .level.active{
-      background:linear-gradient(135deg,var(--a),var(--b));
-      color:#001018;border-color:transparent;
-    }
+    .level.active{background:linear-gradient(135deg,var(--a),var(--b));color:#001018;border-color:transparent}
 
     .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
     button{
@@ -152,12 +138,8 @@
       display:grid;
       grid-template-columns: 1fr 1fr;
       gap:12px;
-      align-items:stretch;
     }
-    @media(max-width: 980px){
-      .stage{min-height: 700px}
-      .panels{grid-template-columns:1fr}
-    }
+    @media(max-width: 980px){ .stage{min-height:700px} .panels{grid-template-columns:1fr} }
 
     .panel{
       border-radius:18px;border:1px solid rgba(255,255,255,.12);
@@ -166,10 +148,7 @@
       display:flex;flex-direction:column;
       min-height: 320px;
     }
-    .panel h3{
-      font-size:13px;display:flex;align-items:center;justify-content:space-between;
-      margin-bottom:10px;
-    }
+    .panel h3{font-size:13px;display:flex;align-items:center;justify-content:space-between;margin-bottom:10px}
     .row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
     .meter{
       flex:1;min-width:220px;height:10px;border-radius:999px;
@@ -180,28 +159,20 @@
     audio{width:100%}
 
     .chatBox{
-      flex:1;
-      overflow:auto;
-      border-radius:14px;
-      padding:10px;
+      flex:1;overflow:auto;border-radius:14px;padding:10px;
       background:rgba(0,0,0,.18);
       border:1px solid rgba(255,255,255,.10);
     }
     .msg{
-      max-width:85%;
-      margin:8px 0;
-      padding:10px 12px;
-      border-radius:14px;
+      max-width:85%;margin:8px 0;padding:10px 12px;border-radius:14px;
       font-size:12px;line-height:1.35;
       border:1px solid rgba(255,255,255,.12);
       background:rgba(255,255,255,.08);
       color:rgba(255,255,255,.92);
-      white-space:pre-wrap;
-      word-break:break-word;
+      white-space:pre-wrap;word-break:break-word;
     }
     .me{margin-left:auto;background:rgba(0,242,254,.10);border-color:rgba(0,242,254,.25)}
     .meta{opacity:.7;font-size:10px;margin-top:4px}
-
     .chatInputRow{display:flex;gap:10px;margin-top:10px}
     input[type="text"]{
       flex:1;padding:12px 12px;border-radius:14px;
@@ -223,8 +194,7 @@
       position:fixed;inset:0;
       background:linear-gradient(135deg,#0f2027,#203a43,#2c5364);
       display:flex;align-items:center;justify-content:center;
-      z-index:9999;
-      padding:18px;
+      z-index:9999;padding:18px;
     }
     .openCard{
       width:min(520px,100%);
@@ -232,66 +202,52 @@
       border:1px solid rgba(255,255,255,.14);
       border-radius:22px;
       box-shadow:var(--shadow);
-      padding:22px;
-      text-align:center;
+      padding:22px;text-align:center;
     }
     .openTitle{font-size:34px;font-weight:1000;letter-spacing:.3px}
     .openSub{margin-top:8px;color:rgba(255,255,255,.78);font-size:13px;line-height:1.5}
-    .openBtn{
-      margin-top:18px;
-      width:100%;
-      justify-content:center;
-      padding:16px 18px;
-      font-size:16px;
-    }
-
+    .openBtn{margin-top:18px;width:100%;justify-content:center;padding:16px 18px;font-size:16px}
     .hidden{display:none !important;}
   </style>
 </head>
 <body>
 
-<!-- OPEN SCREEN -->
 <div id="openScreen">
   <div class="openCard">
-    <div class="openTitle">🎤 Speaking Match</div>
+    <div class="openTitle">🎤 Fast Match</div>
     <div class="openSub">
-      Level tanlang → Find bos → tez match → voice yoki text bilan gaplash.
-      <br>Mic ruxsatini “OPEN” bosilgandan keyin so‘raydi (to‘g‘ri ishlashi uchun).
+      Find bosilganda: <b>Qidirilyapti → Topildi → Gaplashish</b><br>
+      Voice + Text ikkalasi ham bor.
     </div>
     <button class="primary openBtn" id="openBtn">🚀 OPEN</button>
     <div class="openSub" style="margin-top:10px;opacity:.85">
-      Admin online count: Logo’ga 5 marta bos → kod: <b>2332</b>
+      Admin online count (faqat sen): logo 5 marta → kod: <b>2332</b>
     </div>
   </div>
 </div>
 
 <div class="app" id="mainApp" style="display:none;">
   <div class="top">
-    <div class="brand" id="brand">
+    <div class="brand">
       <div class="logo" id="logo">SZ</div>
       <div>
         <h1>Fast Match • Voice + Text</h1>
         <p>Find → Qidirilyapti → Topildi → Gaplashish</p>
       </div>
     </div>
-
     <div class="pill">
       <span class="dot" id="dot"></span>
-      <span id="netText">Offline</span>
+      <span id="netText">Ulanmadi</span>
       <span id="adminOnline" class="hidden">• Online: <b id="onlineCount">0</b></span>
     </div>
   </div>
 
   <div class="content">
-    <!-- LEFT -->
     <div class="card">
       <h2>1) Level tanlang <span class="small" id="picked">—</span></h2>
-      <div class="small">
-        Bir xil leveldagi online odam bo‘lsa tezda ulaydi.
-        Hech kim bo‘lmasa — “Qidirilyapti…”da turadi.
-      </div>
+      <div class="small">Bir xil leveldagi odam bo‘lsa tezda topadi. Yo‘q bo‘lsa qidirishda turadi.</div>
 
-      <div class="levels" id="levels">
+      <div class="levels">
         <div class="level">A1</div><div class="level">A2</div><div class="level">B1</div>
         <div class="level">B2</div><div class="level">C1</div><div class="level">C2</div>
       </div>
@@ -303,36 +259,26 @@
         <button class="danger" id="stopBtn">⛔ Stop</button>
       </div>
 
-      <div class="status" id="status">
-        Level tanlang, keyin “Find Partner”.<br><br>
-        <b>Tezlik:</b> har 0.35 soniyada qidiradi + dead userlarni tozalaydi.
-      </div>
+      <div class="status" id="status">Level tanlang. Keyin “Find Partner”.</div>
     </div>
 
-    <!-- RIGHT -->
     <div class="stage card">
       <div class="tags">
         <div class="tag">Level: <b id="levelTag">—</b></div>
         <div class="tag">Room: <b id="roomTag">—</b></div>
-        <div class="tag">Voice: <b id="callTag">Idle</b></div>
+        <div class="tag">Status: <b id="callTag">Idle</b></div>
         <div class="tag">Partner: <b id="peerTag">—</b></div>
       </div>
 
       <div class="panels">
-        <!-- VOICE -->
         <div class="panel">
           <h3>🎧 Voice (Audio-only) <span class="small" id="micState">Mic: off</span></h3>
-          <div class="row">
-            <div class="meter"><div class="bar" id="micBar"></div></div>
-          </div>
+          <div class="row"><div class="meter"><div class="bar" id="micBar"></div></div></div>
           <div style="height:10px"></div>
           <audio id="remoteAudio" autoplay playsinline></audio>
-          <div class="small" style="margin-top:8px;opacity:.8">
-            Video yo‘q — faqat voice. (sen so‘ragansan)
-          </div>
+          <div class="small" style="margin-top:8px;opacity:.8">Topilganda avtomatik voice boshlanadi.</div>
         </div>
 
-        <!-- TEXT CHAT -->
         <div class="panel">
           <h3>💬 Text Chat <span class="small" id="chatInfo">Room kerak</span></h3>
           <div class="chatBox" id="chatBox"></div>
@@ -340,9 +286,7 @@
             <input id="chatInput" type="text" placeholder="Xabar yozing..." disabled />
             <button class="sendBtn" id="sendBtn" disabled>Send</button>
           </div>
-          <div class="small" style="margin-top:8px;opacity:.8">
-            Gaplashishni xohlamaganlar shu yerda yozishadi.
-          </div>
+          <div class="small" style="margin-top:8px;opacity:.8">Gaplashishni xohlamaganlar shu yerda yozishadi.</div>
         </div>
       </div>
     </div>
@@ -350,20 +294,10 @@
 </div>
 
 <script>
-/* =========================
-   1) OPEN logic
-========================= */
-const openBtn = document.getElementById("openBtn");
-const openScreen = document.getElementById("openScreen");
-const mainApp = document.getElementById("mainApp");
-openBtn.onclick = () => {
-  openScreen.style.display = "none";
-  mainApp.style.display = "block";
-};
+/* OPEN */
+openBtn.onclick = () => { openScreen.style.display="none"; mainApp.style.display="block"; };
 
-/* =========================
-   2) Firebase config (EDIT THIS)
-========================= */
+/* 🔥 Firebase config (TO‘LDIR) */
 const firebaseConfig = {
   apiKey: "YOUR_API_KEY",
   authDomain: "YOUR_PROJECT.firebaseapp.com",
@@ -373,13 +307,12 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const db = firebase.database();
 
-/* =========================
-   3) Helpers / State
-========================= */
+/* Helpers */
 const $ = (id)=>document.getElementById(id);
 let uid = "u_" + Math.random().toString(36).slice(2);
 let level = null;
 
+let connected = false;
 let searching = false;
 let roomId = null;
 let peerId = null;
@@ -390,81 +323,74 @@ let isMuted = false;
 
 let searchLoop = null;
 let cleanLoop = null;
-
 let unsub = [];
-function onOff(ref, ev, fn){ ref.on(ev, fn); unsub.push(()=>ref.off(ev, fn)); }
-function detachAll(){ unsub.forEach(f=>{try{f()}catch(e){}}); unsub=[]; }
 
 function setStatus(html){ $("status").innerHTML = html; }
-function setNet(online){
-  $("dot").classList.toggle("on", !!online);
-  $("netText").textContent = online ? "Online" : "Offline";
+function setNet(ok){
+  $("dot").classList.toggle("on", !!ok);
+  $("netText").textContent = ok ? "Online" : "Ulanmadi";
 }
+function on(ref, ev, fn){ ref.on(ev, fn); unsub.push(()=>ref.off(ev, fn)); }
+function offAll(){ unsub.forEach(f=>{try{f()}catch(e){}}); unsub=[]; }
+function stopLoops(){ if(searchLoop){clearInterval(searchLoop);searchLoop=null;} if(cleanLoop){clearInterval(cleanLoop);cleanLoop=null;} }
+function nowTime(){ return new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"}); }
+function esc(s){ return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;"); }
 
-function nowTime(){
-  return new Date().toLocaleTimeString([], {hour:"2-digit", minute:"2-digit"});
-}
-function escapeHtml(s){
-  return (s||"").replaceAll("&","&amp;").replaceAll("<","&lt;").replaceAll(">","&gt;").replaceAll('"',"&quot;").replaceAll("'","&#039;");
-}
 function addMsg(text, who){
   const box = $("chatBox");
   const d = document.createElement("div");
-  d.className = "msg" + (who === "me" ? " me" : "");
-  d.innerHTML = `<div>${escapeHtml(text)}</div><div class="meta">${who === "me" ? "You" : "Partner"} • ${nowTime()}</div>`;
+  d.className = "msg" + (who==="me" ? " me" : "");
+  d.innerHTML = `<div>${esc(text)}</div><div class="meta">${who==="me"?"You":"Partner"} • ${nowTime()}</div>`;
   box.appendChild(d);
   box.scrollTop = box.scrollHeight;
 }
 
-/* =========================
-   4) Presence + Admin online count
-========================= */
+/* Admin view */
+let clicks=0;
+$("logo").addEventListener("click", ()=>{
+  clicks++;
+  if(clicks>=5){
+    clicks=0;
+    const code = prompt("Admin kod?");
+    if(code==="2332"){ localStorage.setItem("admin_view","1"); location.reload(); }
+    else alert("Noto‘g‘ri kod");
+  }
+});
+
+/* Presence + Correct Online Count (only active in last 45s) */
 function setupPresence(){
   const connectedRef = db.ref(".info/connected");
-  onOff(connectedRef, "value", (snap)=>{
-    const isConn = snap.val() === true;
-    setNet(isConn);
-    if(isConn){
-      const meRef = db.ref("presence/" + uid);
+  on(connectedRef, "value", (snap)=>{
+    connected = snap.val()===true;
+    setNet(connected);
+
+    if(connected){
+      const meRef = db.ref("presence/"+uid);
       meRef.onDisconnect().remove();
       meRef.set({ ts: Date.now(), level: level || "—" });
 
       const hb = setInterval(()=> meRef.update({ ts: Date.now(), level: level || "—" }), 15000);
       unsub.push(()=> clearInterval(hb));
+    } else {
+      setStatus("❌ Firebase ulanmagan. databaseURL va Rules tekshiring.");
     }
   });
 
-  const adminEnabled = localStorage.getItem("admin_view") === "1";
+  const adminEnabled = localStorage.getItem("admin_view")==="1";
   if(adminEnabled){
     $("adminOnline").classList.remove("hidden");
-    const presRef = db.ref("presence");
-    onOff(presRef, "value", (snap)=>{
+    const pres = db.ref("presence");
+    on(pres, "value", (snap)=>{
       const v = snap.val() || {};
-      $("onlineCount").textContent = Object.keys(v).length;
+      const now = Date.now();
+      const active = Object.values(v).filter(x => x && x.ts && (now - x.ts) <= 45000).length;
+      $("onlineCount").textContent = active;
     });
   }
 }
 setupPresence();
 
-// Admin unlock: logo 5 clicks -> code 2332
-let clickCount = 0;
-$("logo").addEventListener("click", ()=>{
-  clickCount++;
-  if(clickCount >= 5){
-    clickCount = 0;
-    const code = prompt("Admin kod?");
-    if(code === "2332"){
-      localStorage.setItem("admin_view","1");
-      location.reload();
-    } else {
-      alert("Noto‘g‘ri kod");
-    }
-  }
-});
-
-/* =========================
-   5) Level select
-========================= */
+/* Level select */
 document.querySelectorAll(".level").forEach(el=>{
   el.addEventListener("click", ()=>{
     document.querySelectorAll(".level").forEach(x=>x.classList.remove("active"));
@@ -472,36 +398,23 @@ document.querySelectorAll(".level").forEach(el=>{
     level = el.textContent.trim();
     $("picked").textContent = level;
     $("levelTag").textContent = level;
-
-    // update presence immediately
-    db.ref("presence/"+uid).update({ level });
-
+    db.ref("presence/"+uid).update({ level }).catch(()=>{});
     setStatus(`✅ Level: <b>${level}</b>. Endi “Find Partner” bosing.`);
   });
 });
 
-/* =========================
-   6) WebRTC (Audio-only)
-========================= */
-const rtcConfig = {
-  iceServers: [
-    { urls:"stun:stun.l.google.com:19302" },
-    { urls:"stun:stun1.l.google.com:19302" }
-  ]
-};
+/* WebRTC Audio */
+const rtcConfig = { iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:"stun:stun1.l.google.com:19302"}] };
 
 async function startMic(){
   if(localStream) return localStream;
-  localStream = await navigator.mediaDevices.getUserMedia({ audio:true, video:false });
+  localStream = await navigator.mediaDevices.getUserMedia({audio:true, video:false});
   $("micState").textContent = "Mic: on";
   monitorMic(localStream);
   return localStream;
 }
 function stopMic(){
-  if(localStream){
-    localStream.getTracks().forEach(t=>t.stop());
-    localStream=null;
-  }
+  if(localStream){ localStream.getTracks().forEach(t=>t.stop()); localStream=null; }
   $("micState").textContent = "Mic: off";
   $("micBar").style.width = "0%";
 }
@@ -510,19 +423,17 @@ function monitorMic(stream){
     const ac = new (window.AudioContext||window.webkitAudioContext)();
     const src = ac.createMediaStreamSource(stream);
     const an = ac.createAnalyser();
-    an.fftSize = 256;
-    src.connect(an);
+    an.fftSize=256; src.connect(an);
     const data = new Uint8Array(an.frequencyBinCount);
-    let alive = true;
+    let alive=true;
     unsub.push(()=>{ alive=false; try{ac.close()}catch(e){} });
     const loop=()=>{
       if(!alive) return;
       an.getByteFrequencyData(data);
-      let sum=0;
-      for(let i=0;i<data.length;i++) sum+=data[i];
-      const avg = sum/data.length;
-      const pct = Math.min(100, Math.max(0, (avg/255)*120));
-      $("micBar").style.width = pct.toFixed(0) + "%";
+      let sum=0; for(let i=0;i<data.length;i++) sum+=data[i];
+      const avg=sum/data.length;
+      const pct=Math.min(100, Math.max(0, (avg/255)*120));
+      $("micBar").style.width = pct.toFixed(0)+"%";
       requestAnimationFrame(loop);
     };
     loop();
@@ -530,10 +441,7 @@ function monitorMic(stream){
 }
 
 function closePeer(){
-  if(pc){
-    try{ pc.onicecandidate=null; pc.ontrack=null; pc.onconnectionstatechange=null; pc.close(); }catch(e){}
-    pc=null;
-  }
+  if(pc){ try{pc.close()}catch(e){} pc=null; }
   $("remoteAudio").srcObject=null;
   $("callTag").textContent="Idle";
   $("peerTag").textContent="—";
@@ -546,178 +454,138 @@ function closePeer(){
   isMuted=false;
   $("muteBtn").textContent="🔇 Mute";
 }
-
 async function initPC(){
   pc = new RTCPeerConnection(rtcConfig);
   const stream = await startMic();
-  stream.getTracks().forEach(t=> pc.addTrack(t, stream));
-
-  pc.ontrack = (evt)=>{ $("remoteAudio").srcObject = evt.streams[0]; };
-  pc.onconnectionstatechange = ()=>{
-    if(!pc) return;
-    $("callTag").textContent = pc.connectionState;
-  };
+  stream.getTracks().forEach(t=>pc.addTrack(t, stream));
+  pc.ontrack = (e)=> $("remoteAudio").srcObject = e.streams[0];
+  pc.onconnectionstatechange = ()=> $("callTag").textContent = pc.connectionState;
 }
+function sig(room){ return db.ref("signal/"+room); }
 
-function signalRef(room){ return db.ref("signal/"+room); }
-
-async function becomeCaller(){
+async function caller(){
   await initPC();
-  const sig = signalRef(roomId);
-  const myCand = sig.child("candidates").child(uid);
+  const s=sig(roomId);
+  const myCand=s.child("candidates").child(uid);
+  pc.onicecandidate=(e)=>{ if(e.candidate) myCand.push(e.candidate.toJSON()); };
 
-  pc.onicecandidate = (e)=>{ if(e.candidate) myCand.push(e.candidate.toJSON()); };
-
-  const offer = await pc.createOffer();
+  const offer=await pc.createOffer();
   await pc.setLocalDescription(offer);
-  await sig.child("offer").set({ sdp: offer.sdp, type: offer.type, from: uid });
+  await s.child("offer").set({type:offer.type,sdp:offer.sdp,from:uid});
 
-  const ans = sig.child("answer");
-  onOff(ans, "value", async (snap)=>{
-    const a = snap.val();
-    if(a && pc && !pc.currentRemoteDescription){
-      await pc.setRemoteDescription(new RTCSessionDescription(a));
-    }
+  on(s.child("answer"),"value", async (snap)=>{
+    const a=snap.val();
+    if(a && pc && !pc.currentRemoteDescription) await pc.setRemoteDescription(new RTCSessionDescription(a));
   });
 
-  const peerCand = sig.child("candidates").child(peerId);
-  onOff(peerCand, "child_added", async (snap)=>{
-    const c = snap.val();
-    if(pc && c){ try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){} }
+  on(s.child("candidates").child(peerId),"child_added", async (snap)=>{
+    const c=snap.val(); if(c) try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){}
   });
 }
-
-async function becomeCallee(){
+async function callee(){
   await initPC();
-  const sig = signalRef(roomId);
-  const myCand = sig.child("candidates").child(uid);
+  const s=sig(roomId);
+  const myCand=s.child("candidates").child(uid);
+  pc.onicecandidate=(e)=>{ if(e.candidate) myCand.push(e.candidate.toJSON()); };
 
-  pc.onicecandidate = (e)=>{ if(e.candidate) myCand.push(e.candidate.toJSON()); };
-
-  const off = sig.child("offer");
-  onOff(off, "value", async (snap)=>{
-    const o = snap.val();
-    if(!o || !pc) return;
-    if(!pc.currentRemoteDescription){
-      await pc.setRemoteDescription(new RTCSessionDescription(o));
-      const answer = await pc.createAnswer();
-      await pc.setLocalDescription(answer);
-      await sig.child("answer").set({ sdp: answer.sdp, type: answer.type, from: uid });
-    }
+  on(s.child("offer"),"value", async (snap)=>{
+    const o=snap.val();
+    if(!o || !pc || pc.currentRemoteDescription) return;
+    await pc.setRemoteDescription(new RTCSessionDescription(o));
+    const ans=await pc.createAnswer();
+    await pc.setLocalDescription(ans);
+    await s.child("answer").set({type:ans.type,sdp:ans.sdp,from:uid});
   });
 
-  const peerCand = sig.child("candidates").child(peerId);
-  onOff(peerCand, "child_added", async (snap)=>{
-    const c = snap.val();
-    if(pc && c){ try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){} }
+  on(s.child("candidates").child(peerId),"child_added", async (snap)=>{
+    const c=snap.val(); if(c) try{ await pc.addIceCandidate(new RTCIceCandidate(c)); }catch(e){}
   });
 }
 
-/* =========================
-   7) Matchmaking (FAST + CLEAN)
-   - queue/{level}/{uid}: {ts, claimedBy, matchedRoom, alive}
-   - rooms/{roomId}: {users, endedBy}
-========================= */
-
-function qMeRef(){ return db.ref(`queue/${level}/${uid}`); }
-function qLevelRef(){ return db.ref(`queue/${level}`); }
-function roomRef(id){ return db.ref(`rooms/${id}`); }
+/* Matchmaking FAST + VERY CLEAR statuses */
+function qMe(){ return db.ref(`queue/${level}/${uid}`); }
+function qLvl(){ return db.ref(`queue/${level}`); }
+function room(id){ return db.ref(`rooms/${id}`); }
 
 async function ensureQueue(){
-  const me = qMeRef();
-  await me.set({ ts: Date.now(), claimedBy: null, matchedRoom: null, alive: Date.now() });
-  me.onDisconnect().remove();
+  await qMe().set({ts:Date.now(), alive:Date.now(), claimedBy:null, matchedRoom:null});
+  qMe().onDisconnect().remove();
 }
-
-async function cleanupDeadQueue(maxAgeMs=45000){
-  // remove queue entries older than maxAgeMs or with no "alive" refresh
-  const snap = await qLevelRef().once("value");
-  const v = snap.val() || {};
-  const now = Date.now();
-  const updates = {};
+async function cleanupDead(maxAge=45000){
+  const snap=await qLvl().once("value");
+  const v=snap.val()||{};
+  const now=Date.now();
+  const updates={};
   for(const [id,obj] of Object.entries(v)){
-    if(!obj) continue;
-    const t = obj.alive || obj.ts || 0;
-    if(now - t > maxAgeMs){
-      updates[`queue/${level}/${id}`] = null;
-    }
+    const t=(obj && (obj.alive||obj.ts))||0;
+    if(now-t>maxAge) updates[`queue/${level}/${id}`]=null;
   }
   if(Object.keys(updates).length) await db.ref().update(updates);
 }
 
 async function fastFind(){
-  if(!level) return alert("Avval level tanlang!");
+  if(!connected){
+    setStatus("❌ Firebase ulanmagan. databaseURL / Rules tekshiring.");
+    return;
+  }
+  if(!level){ alert("Level tanlang!"); return; }
   if(searching) return;
 
-  searching = true;
-  setStatus(`🔎 <b>${level}</b> uchun qidirilyapti...`);
-  $("callTag").textContent = "Searching";
+  searching=true;
+  setStatus(`🔎 <b>${level}</b> uchun <b>qidirilyapti...</b>`);
+  $("callTag").textContent="Searching";
+  $("chatBox").innerHTML="";
+  $("chatInfo").textContent="Qidirilyapti...";
 
   await ensureQueue();
 
-  // keep alive heartbeat (queue alive)
-  const aliveTimer = setInterval(()=>{
-    if(!level) return;
-    qMeRef().update({ alive: Date.now() }).catch(()=>{});
-  }, 8000);
-  unsub.push(()=> clearInterval(aliveTimer));
+  // alive heartbeat
+  const aliveTimer=setInterval(()=> qMe().update({alive:Date.now()}).catch(()=>{}), 8000);
+  unsub.push(()=>clearInterval(aliveTimer));
 
-  // listen my matchedRoom
-  const mref = qMeRef().child("matchedRoom");
-  onOff(mref, "value", async (snap)=>{
-    const r = snap.val();
+  // if matchedRoom comes, join immediately
+  on(qMe().child("matchedRoom"), "value", async (snap)=>{
+    const r=snap.val();
     if(r && searching){
-      roomId = r;
-      searching = false;
+      roomId=r;
+      searching=false;
       stopLoops();
       await joinRoomAndStart();
     }
   });
 
-  // periodic cleanup
-  cleanLoop = setInterval(()=>{
-    if(searching) cleanupDeadQueue(45000).catch(()=>{});
-  }, 7000);
+  cleanLoop=setInterval(()=>{ if(searching) cleanupDead().catch(()=>{}); }, 7000);
 
-  // FAST search loop
-  searchLoop = setInterval(async ()=>{
+  searchLoop=setInterval(async ()=>{
     if(!searching) return;
 
-    // get first 30 oldest
-    const snap = await qLevelRef().orderByChild("ts").limitToFirst(30).once("value");
-    const list = snap.val() || {};
-    const ids = Object.keys(list).filter(id => id !== uid);
+    const snap=await qLvl().orderByChild("ts").limitToFirst(30).once("value");
+    const list=snap.val()||{};
+    const ids=Object.keys(list).filter(x=>x!==uid);
 
     for(const otherId of ids){
-      const node = list[otherId];
+      const node=list[otherId];
       if(!node || node.matchedRoom) continue;
 
-      // claim other using transaction (atomic)
-      const claimRef = db.ref(`queue/${level}/${otherId}/claimedBy`);
-      const res = await claimRef.transaction((cur)=>{
-        if(cur === null) return uid;
-        return; // abort
-      });
+      const claimRef=db.ref(`queue/${level}/${otherId}/claimedBy`);
+      const res=await claimRef.transaction(cur => (cur===null?uid:undefined));
 
       if(res.committed){
-        // create stable room id
-        const a = [uid, otherId].sort();
-        roomId = `r_${level}_${a[0]}_${a[1]}`;
-        peerId = otherId;
+        const a=[uid, otherId].sort();
+        roomId=`r_${level}_${a[0]}_${a[1]}`;
+        peerId=otherId;
 
-        // write room + set matchedRoom for both
-        const updates = {};
-        updates[`rooms/${roomId}`] = {
-          level,
-          createdAt: Date.now(),
-          users: { [uid]: true, [otherId]: true },
-          endedBy: null
-        };
-        updates[`queue/${level}/${uid}/matchedRoom`] = roomId;
-        updates[`queue/${level}/${otherId}/matchedRoom`] = roomId;
+        // TOPILDI status (aniq)
+        setStatus(`✅ <b>Topildi!</b> Ulanmoqda...`);
+        $("callTag").textContent="Connecting";
+
+        const updates={};
+        updates[`rooms/${roomId}`]={level,createdAt:Date.now(),users:{[uid]:true,[otherId]:true},endedBy:null};
+        updates[`queue/${level}/${uid}/matchedRoom`]=roomId;
+        updates[`queue/${level}/${otherId}/matchedRoom`]=roomId;
         await db.ref().update(updates);
 
-        searching = false;
+        searching=false;
         stopLoops();
         await joinRoomAndStart();
         return;
@@ -726,152 +594,115 @@ async function fastFind(){
   }, 350);
 }
 
-function stopLoops(){
-  if(searchLoop){ clearInterval(searchLoop); searchLoop=null; }
-  if(cleanLoop){ clearInterval(cleanLoop); cleanLoop=null; }
-}
-
 async function joinRoomAndStart(){
-  if(!roomId) return;
-  $("roomTag").textContent = roomId;
-  $("chatInfo").textContent = "Ulandi";
-  $("chatInput").disabled = false;
-  $("sendBtn").disabled = false;
-  $("skipBtn").disabled = false;
-  $("muteBtn").disabled = false;
+  $("roomTag").textContent=roomId;
+  $("chatInfo").textContent="Ulandi";
+  $("chatInput").disabled=false;
+  $("sendBtn").disabled=false;
+  $("skipBtn").disabled=false;
+  $("muteBtn").disabled=false;
 
-  // cleanup my queue entry (and peer too)
-  qMeRef().remove().catch(()=>{});
+  // remove my queue
+  qMe().remove().catch(()=>{});
 
-  const rSnap = await roomRef(roomId).once("value");
-  const r = rSnap.val();
+  const rSnap=await room(roomId).once("value");
+  const r=rSnap.val();
   if(!r || !r.users){
-    setStatus("❌ Room topilmadi. Yana Find bosing.");
+    setStatus("❌ Room yo‘q. Qayta Find bosing.");
     return resetAll(false);
   }
-
-  const users = Object.keys(r.users);
-  peerId = users.find(x=>x!==uid) || null;
+  const users=Object.keys(r.users);
+  peerId = users.find(x=>x!==uid) || peerId;
   $("peerTag").textContent = peerId ? peerId.slice(0,8) : "—";
 
-  // listen endedBy
-  const ended = roomRef(roomId).child("endedBy");
-  onOff(ended, "value", (snap)=>{
-    const v = snap.val();
-    if(v && v !== uid){
+  // endedBy listener
+  on(room(roomId).child("endedBy"), "value", (snap)=>{
+    const v=snap.val();
+    if(v && v!==uid){
       setStatus("⛔ Partner skip qildi. Yana Find bosing.");
       resetAll(false);
     }
   });
 
-  // voice connect: deterministic caller
-  const caller = peerId ? ([uid, peerId].sort()[0] === uid) : true;
+  // deterministic caller
+  const amCaller = peerId ? ([uid, peerId].sort()[0]===uid) : true;
+
   try{
-    if(caller){
-      $("callTag").textContent = "Caller";
-      await becomeCaller();
-    } else {
-      $("callTag").textContent = "Callee";
-      await becomeCallee();
-    }
-    setStatus("✅ Topildi! 🎧 Voice tayyor. Xohlasang text ham yoz.");
+    if(amCaller){ $("callTag").textContent="Caller"; await caller(); }
+    else { $("callTag").textContent="Callee"; await callee(); }
+
+    // FINAL READY status (aniq)
+    setStatus("✅ <b>Topildi!</b> 🎧 <b>Gaplashishni boshlang</b> (voice tayyor).");
   }catch(e){
     setStatus("❌ Voice ulanish xato. Skip bosing va qayta urinib ko‘ring.");
   }
 
-  // chat listener
-  const msgRef = db.ref(`rooms/${roomId}/messages`);
-  onOff(msgRef, "child_added", (snap)=>{
-    const m = snap.val();
+  // text chat listener
+  on(db.ref(`rooms/${roomId}/messages`), "child_added", (snap)=>{
+    const m=snap.val();
     if(!m || !m.text) return;
-    addMsg(m.text, (m.user === uid) ? "me" : "peer");
+    addMsg(m.text, (m.user===uid) ? "me" : "peer");
   });
 }
 
-/* =========================
-   8) Text chat send
-========================= */
-$("sendBtn").addEventListener("click", async ()=>{
-  const v = $("chatInput").value.trim();
+/* Text send */
+$("sendBtn").onclick = async ()=>{
+  const v=$("chatInput").value.trim();
   if(!v || !roomId) return;
-  $("chatInput").value = "";
-  await db.ref(`rooms/${roomId}/messages`).push({ user: uid, text: v, ts: Date.now() });
-});
-$("chatInput").addEventListener("keydown", (e)=>{
-  if(e.key === "Enter") $("sendBtn").click();
-});
+  $("chatInput").value="";
+  await db.ref(`rooms/${roomId}/messages`).push({user:uid,text:v,ts:Date.now()});
+};
+$("chatInput").addEventListener("keydown",(e)=>{ if(e.key==="Enter") $("sendBtn").click(); });
 
-/* =========================
-   9) Buttons
-========================= */
-$("findBtn").addEventListener("click", async ()=>{
-  try{
-    await fastFind();
-  }catch(e){
-    setStatus("❌ Find ishlamadi. FirebaseConfig/Rules/Console tekshiring.");
-  }
-});
+/* Buttons */
+$("findBtn").onclick = fastFind;
 
-$("muteBtn").addEventListener("click", ()=>{
+$("muteBtn").onclick = ()=>{
   if(!localStream) return;
-  isMuted = !isMuted;
-  localStream.getAudioTracks().forEach(t=> t.enabled = !isMuted);
+  isMuted=!isMuted;
+  localStream.getAudioTracks().forEach(t=>t.enabled=!isMuted);
   $("muteBtn").textContent = isMuted ? "🔊 Unmute" : "🔇 Mute";
   $("micState").textContent = isMuted ? "Mic: muted" : "Mic: on";
-});
+};
 
-$("skipBtn").addEventListener("click", async ()=>{
+$("skipBtn").onclick = async ()=>{
   try{
     if(roomId){
-      await roomRef(roomId).update({ endedBy: uid });
-      // optional signal cleanup
+      await room(roomId).update({endedBy:uid});
       await db.ref("signal/"+roomId).remove().catch(()=>{});
     }
   }catch(e){}
   setStatus("⏭ Skip qilindi. Yana Find bosing.");
   resetAll(false);
-});
+};
 
-$("stopBtn").addEventListener("click", ()=>{
+$("stopBtn").onclick = ()=>{
   setStatus("⛔ To‘xtatildi.");
   resetAll(true);
-});
+};
 
-/* =========================
-   10) Reset / Cleanup
-========================= */
 function resetAll(fullStop){
   stopLoops();
-  detachAll();
+  offAll();
 
-  if(level){
-    db.ref(`queue/${level}/${uid}`).remove().catch(()=>{});
-  }
-
+  if(level) db.ref(`queue/${level}/${uid}`).remove().catch(()=>{});
   closePeer();
 
-  if(fullStop){
-    stopMic();
-  }
+  if(fullStop) stopMic();
 
-  searching = false;
-  roomId = null;
-  peerId = null;
+  searching=false; roomId=null; peerId=null;
 
-  $("chatBox").innerHTML = "";
-  $("chatInput").disabled = true;
-  $("sendBtn").disabled = true;
+  $("chatBox").innerHTML="";
+  $("chatInput").disabled=true;
+  $("sendBtn").disabled=true;
+  $("chatInfo").textContent="Room kerak";
 
-  $("callTag").textContent = "Idle";
-  $("peerTag").textContent = "—";
-  $("roomTag").textContent = "—";
-  $("chatInfo").textContent = "Room kerak";
+  $("callTag").textContent="Idle";
+  $("peerTag").textContent="—";
+  $("roomTag").textContent="—";
 
-  if(level){
-    setStatus(`✅ Tayyor. Level: <b>${level}</b>. “Find Partner” bosing.`);
-  } else {
-    setStatus("Level tanlang. Keyin “Find Partner”.");
-  }
+  if(level) setStatus(`✅ Tayyor. Level: <b>${level}</b>. “Find Partner” bosing.`);
+  else setStatus("Level tanlang. Keyin “Find Partner”.");
 }
 </script>
 </body>
